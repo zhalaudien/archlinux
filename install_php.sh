@@ -82,6 +82,9 @@ if [ ! -d "/srv/http/phpmyadmin" ]; then
     ln -s /usr/share/webapps/phpmyadmin /srv/http/phpmyadmin
 fi
 
+sudo chown -R http:http /srv/http/phpmyadmin
+sudo chmod -R 755 /srv/http/phpmyadmin
+
 echo "✅ phpMyAdmin dapat diakses di: http://localhost/phpmyadmin"
 
 # 5. Install Composer
