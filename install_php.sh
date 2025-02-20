@@ -13,8 +13,8 @@ echo "🗄️ Menginstal MariaDB Server..."
 pacman -S --noconfirm mariadb
 
 # Jalankan dan aktifkan MariaDB
-systemctl start mariadb
-systemctl enable mariadb
+systemctl start mariadb.service
+systemctl enable mariadb.service
 
 # Konfigurasi Keamanan MariaDB
 echo "🔒 Mengatur keamanan MariaDB..."
@@ -64,7 +64,7 @@ echo "✅ Composer berhasil diinstal. Cek dengan menjalankan: composer --version
 
 # Restart service untuk menerapkan perubahan
 echo "🔄 Merestart layanan terkait..."
-systemctl restart mariadb
+systemctl restart mariadb.service
 systemctl restart php-fpm || systemctl restart php-fpm
 
 echo "🎉 Instalasi selesai! Akses phpMyAdmin di: http://localhost/phpmyadmin"
