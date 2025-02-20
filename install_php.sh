@@ -81,11 +81,11 @@ sudo rm -rf /srv/http/phpmyadmin
 
 # Buat symlink untuk phpMyAdmin
 if [ ! -d "/srv/http/phpmyadmin" ]; then
-    sudo ln -s /usr/share/webapps/phpmyadmin /srv/http/phpmyadmin
+    sudo ln -s /usr/share/webapps/phpMyAdmin /srv/http/phpmyadmin
 fi
 
-sudo chown -R http:http /usr/share/webapps/phpmyadmin
-sudo chmod -R 755 /usr/share/webapps/phpmyadmin
+sudo chown -R http:http /usr/share/webapps/phpMyAdmin
+sudo chmod -R 755 /usr/share/webapps/phpMyAdmin
 
 echo "✅ phpMyAdmin dapat diakses di: http://localhost/phpmyadmin"
 
