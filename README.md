@@ -18,7 +18,7 @@ git clone https://github.com/zhalaudien/archlinux.git
 cd archlinux/
 ```
 
-update system.
+update system && install firefox.
 
 ```
 sudo ./afterinstall.sh
@@ -27,7 +27,7 @@ sudo ./afterinstall.sh
 Install Fish dan oh-my-posh
 
 ```
-sudo ./install_fish.sh
+./install_fish.sh
 ```
 
 Install tema.
@@ -36,7 +36,7 @@ Install tema.
 sudo ./install_tema.sh
 ```
 
-Install PHP, apache, mariadb, phpmyadmin.
+Install PHP, composer, apache, mariadb, phpmyadmin.
 
 ```
 sudo ./install_tema.sh
