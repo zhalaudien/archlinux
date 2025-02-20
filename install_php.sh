@@ -77,6 +77,8 @@ if ! grep -q "extension=mysqli" /etc/php/php.ini; then
     sed -i 's/;extension=mysqli/extension=mysqli/' /etc/php/php.ini
 fi
 
+sudo rm -rf /srv/http/phpmyadmin 
+
 # Buat symlink untuk phpMyAdmin
 if [ ! -d "/srv/http/phpmyadmin" ]; then
     ln -s /usr/share/webapps/phpmyadmin /srv/http/phpmyadmin
