@@ -8,7 +8,7 @@ fi
 
 # 1. Install Fish Shell (Arch Linux/Manjaro)
 echo "🐟 Menginstal Fish Shell..."
-pamac -S fish --noconfirm
+pacman -S fish --noconfirm
 
 # Ganti shell default ke Fish
 echo "🔄 Mengganti shell default ke Fish..."
