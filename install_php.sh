@@ -13,6 +13,7 @@ echo "🌐 Menginstal Apache Web Server (httpd)..."
 pacman -S --noconfirm apache
 echo "<?php phpinfo(); ?>" | sudo tee /srv/http/info.php
 
+
 # Jalankan dan aktifkan Apache
 echo "🔄 Mengaktifkan dan menjalankan Apache..."
 systemctl enable --now httpd.service
@@ -56,10 +57,7 @@ cat <<EOF > /etc/httpd/conf/extra/php-fpm.conf
 EOF
 
 # Tambahkan konfigurasi PHP-FPM di httpd.conf jika belum ada
-if ! grep -q "Include conf/extra/php-fpm.conf" /etc/httpd/conf/httpd.conf; then
-    echo "🛠️ Menambahkan konfigurasi PHP-FPM ke httpd.conf..."
-    echo "Include conf/extra/php-fpm.conf" >> /etc/httpd/conf/httpd.conf
-fi
+sudo cp config/httpd.conf /etc/httpd/conf/httpd.conf
 
 # Jalankan dan aktifkan PHP-FPM
 echo "🔄 Mengaktifkan dan memulai PHP-FPM..."
