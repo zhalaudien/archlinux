@@ -10,7 +10,7 @@ echo "🚀 Memulai instalasi MariaDB, PHP, phpMyAdmin, dan Composer..."
 
 # 1. Install MariaDB Server
 echo "🗄️ Menginstal MariaDB Server..."
-pacman -S update && pacman -S --noconfirm mariadb-server
+pacman -S --noconfirm mariadb
 
 # Jalankan dan aktifkan MariaDB
 systemctl start mariadb
@@ -34,7 +34,7 @@ echo "✅ MariaDB telah diinstal dan dikonfigurasi."
 
 # 2. Install PHP dan Ekstensi Penting
 echo "🐘 Menginstal PHP dan ekstensi yang diperlukan..."
-pacman -S --noconfirm php php-fpm php-gd php-xml php-mbstring php-curl php-intl php-zip unzip
+pacman -S --noconfirm php php-fpm php-gd php-intl unzip
 
 # 3. Install phpMyAdmin
 echo "📊 Menginstal phpMyAdmin..."
@@ -65,6 +65,6 @@ echo "✅ Composer berhasil diinstal. Cek dengan menjalankan: composer --version
 # Restart service untuk menerapkan perubahan
 echo "🔄 Merestart layanan terkait..."
 systemctl restart mariadb
-systemctl restart php7.4-fpm || systemctl restart php8.2-fpm
+systemctl restart php-fpm || systemctl restart php-fpm
 
 echo "🎉 Instalasi selesai! Akses phpMyAdmin di: http://localhost/phpmyadmin"
