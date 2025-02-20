@@ -41,7 +41,7 @@ if ! command -v gnome-tweaks &> /dev/null; then
 fi
 
 echo "🧰 Install extensions gnome shell..."
-cp -r /config/extensions ~/.local/share/gnome-shell
+cp -r config/extensions ~/.local/share/gnome-shell
 
 # 4. Membersihkan cache tema GTK
 echo "🧹 Membersihkan cache tema GTK..."
