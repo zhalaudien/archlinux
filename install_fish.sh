@@ -23,13 +23,13 @@ fc-cache -f -v
 # 5. Install dan Atur Tema Oh My Posh
 echo "🎨 Mengatur Tema Oh My Posh..."
 mkdir -p ~/.poshthemes
-wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip -O ~/.poshthemes/themes.zip
-unzip ~/.poshthemes/themes.zip -d ~/.poshthemes
+wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/latest/download/themes.zip -O $HOME/.poshthemes/themes.zip
+unzip $HOME/.poshthemes/themes.zip -d $HOME/.poshthemes
 chmod u+rw ~/.poshthemes/*.json
 rm ~/.poshthemes/themes.zip
 
 # Tambahkan ke config Fish Shell
-cp config/config.fish ~/.config/fish/
+cp config/config.fish $HOME/.config/fish/
 
 # 6. Mengganti Warna Terminal ke Everforest
 echo "🌲 Mengatur skema warna ke Everforest..."
