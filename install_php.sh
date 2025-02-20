@@ -38,7 +38,7 @@ pacman -S --noconfirm php php-fpm php-gd php-intl unzip
 
 # 3. Install phpMyAdmin
 echo "📊 Menginstal phpMyAdmin..."
-DEBIAN_FRONTEND=noninteractive pacman -S --noconfirm phpmyadmin
+pacman -S --noconfirm phpmyadmin
 
 # Konfigurasi phpMyAdmin
 echo "🔧 Konfigurasi phpMyAdmin..."
