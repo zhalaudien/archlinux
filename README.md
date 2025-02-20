@@ -21,7 +21,7 @@ cd archlinux/
 update system && install firefox.
 
 ```
-sudo ./afterinstall.sh
+./afterinstall.sh
 ```
 
 Install Fish dan oh-my-posh

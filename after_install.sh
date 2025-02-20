@@ -2,11 +2,11 @@
 
 # 1. Update system
 echo "🧰 Menginstal aplikasi pendukung..."
-pacman -Syu --noconfirm
+sudo pacman -Syu --noconfirm
 
 # 2. Install software
 echo "🧰 Menginstal aplikasi pendukung..."
-pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-profiles-daemon gnome-browser-connector gtk-engine-murrine neofetch htop
+sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-profiles-daemon gnome-browser-connector gtk-engine-murrine neofetch htop
 
 # 3. Setup AUR dengan yay
 if ! command -v yay &> /dev/null; then
