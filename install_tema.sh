@@ -6,6 +6,10 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Dwonload tema
+git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
+git clone https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git Everforest
+
 # Fungsi untuk menginstal tema
 install_theme() {
     local theme_dir=$1
