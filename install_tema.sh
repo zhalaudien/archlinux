@@ -14,7 +14,7 @@ install_theme() {
 
     if [ -f "${theme_dir}/themes/install.sh" ]; then
         chmod +x "${theme_dir}/themes/install.sh"
-        bash sudo "${theme_dir}/themes/install.sh"
+        sudo bash "${theme_dir}/themes/install.sh"
     else
         echo "❌ File install.sh tidak ditemukan di ${theme_dir}/themes/"
         exit 1
@@ -41,7 +41,7 @@ if ! command -v gnome-tweaks &> /dev/null; then
 fi
 
 echo "🧰 Install extensions gnome shell..."
-cp /config/extensions ~/.local/share/gnome-shell
+cp -r /config/extensions ~/.local/share/gnome-shell
 
 # 4. Membersihkan cache tema GTK
 echo "🧹 Membersihkan cache tema GTK..."
