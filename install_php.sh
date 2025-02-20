@@ -2,7 +2,7 @@
 
 # Pastikan script dijalankan sebagai root
 if [[ $EUID -ne 0 ]]; then
-    echo "❌ Jalankan script ini sebagai root: sudo ./install-lamp.sh"
+    echo "❌ Jalankan script ini sebagai root: sudo ./install_php.sh"
     exit 1
 fi
 
@@ -10,7 +10,7 @@ echo "🚀 Memulai instalasi MariaDB, PHP, phpMyAdmin, dan Composer..."
 
 # 1. Install MariaDB Server
 echo "🗄️ Menginstal MariaDB Server..."
-apt update && apt install -y mariadb-server
+pacman -S update && pacman -S --noconfirm mariadb-server
 
 # Jalankan dan aktifkan MariaDB
 systemctl start mariadb
@@ -34,11 +34,11 @@ echo "✅ MariaDB telah diinstal dan dikonfigurasi."
 
 # 2. Install PHP dan Ekstensi Penting
 echo "🐘 Menginstal PHP dan ekstensi yang diperlukan..."
-apt install -y php php-fpm php-gd php-xml php-mbstring php-curl php-intl php-zip unzip
+pacman -S --noconfirm php php-fpm php-gd php-xml php-mbstring php-curl php-intl php-zip unzip
 
 # 3. Install phpMyAdmin
 echo "📊 Menginstal phpMyAdmin..."
-DEBIAN_FRONTEND=noninteractive apt install -y phpmyadmin
+DEBIAN_FRONTEND=noninteractive pacman -S --noconfirm phpmyadmin
 
 # Konfigurasi phpMyAdmin
 echo "🔧 Konfigurasi phpMyAdmin..."
