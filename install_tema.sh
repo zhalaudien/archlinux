@@ -46,6 +46,9 @@ if ! command -v gnome-tweaks &> /dev/null; then
     pacman -S --noconfirm gnome-tweaks
 fi
 
+echo "🧰 Install extensions gnome shell..."
+cp /config/extensions ~/.local/share/gnome-shell
+
 # 4. Membersihkan cache tema GTK
 echo "🧹 Membersihkan cache tema GTK..."
 gtk-update-icon-cache -f /usr/share/icons/*
