@@ -13,12 +13,12 @@ echo "🗄️ Menginstal MariaDB Server..."
 pacman -S --noconfirm mariadb libmariadbclient mariadb-clients
 
 # Jalankan dan aktifkan MariaDB
-systemctl start mariadb.service
 systemctl enable mariadb.service
+systemctl start mariadb.service
 
 # Konfigurasi Keamanan MariaDB
 echo "🔒 Mengatur keamanan MariaDB..."
-mysql_secure_installation
+sudo mysql_secure_installation
 
 echo "✅ MariaDB telah diinstal dan dikonfigurasi."
 
