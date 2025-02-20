@@ -1,14 +1,15 @@
 #!/bin/bash
 
+# Download tema
+echo "📥 Mengunduh tema..."
+git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
+git clone https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git Everforest
+
 # Pastikan script dijalankan sebagai root
 if [[ $EUID -ne 0 ]]; then
    echo "❌ Jalankan script ini sebagai root: sudo ./install-themes.sh"
    exit 1
 fi
-
-# Dwonload tema
-git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
-git clone https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git Everforest
 
 # Fungsi untuk menginstal tema
 install_theme() {
@@ -48,5 +49,9 @@ fi
 # 4. Membersihkan cache tema GTK
 echo "🧹 Membersihkan cache tema GTK..."
 gtk-update-icon-cache -f /usr/share/icons/*
+
+# 5. Menghapus direktori tema setelah instalasi
+echo "🗑️ Menghapus direktori tema yang sudah diinstal..."
+sudo rm -rf Everforest Tokyonight
 
 echo "✅ Instalasi Tema & Icon Everforest dan Tokyonight selesai!"
