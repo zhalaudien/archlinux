@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Pastikan script dijalankan sebagai root
+if [[ $EUID -ne 0 ]]; then
+   echo "❌ Jalankan script ini sebagai root: sudo ./install-themes.sh"
+   exit 1
+fi
+
+# Fungsi untuk menginstal tema
+install_theme() {
+    local theme_dir=$1
+    local theme_name=$2
+
+    echo "🧰 Menginstal Tema ${theme_name}..."
+
+    if [ -f "${theme_dir}/themes/install.sh" ]; then
+        chmod +x "${theme_dir}/themes/install.sh"
+        bash "${theme_dir}/themes/install.sh"
+    else
+        echo "❌ File install.sh tidak ditemukan di ${theme_dir}/themes/"
+        exit 1
+    fi
+
+    echo "🧰 Menginstal Icon ${theme_name}..."
+    if [ -d "${theme_dir}/icons" ]; then
+        cp -r "${theme_dir}/icons/"* /usr/share/icons/
+    else
+        echo "❌ Direktori ikon tidak ditemukan di ${theme_dir}/icons/"
+    fi
+}
+
+# 1. Install Tema Everforest
+install_theme "Everforest" "Everforest"
+
+# 2. Install Tema Tokyonight
+install_theme "Tokyonight" "Tokyonight"
+
+# 3. Memastikan GNOME Tweaks terpasang
+if ! command -v gnome-tweaks &> /dev/null; then
+    echo "🔧 Menginstal GNOME Tweaks..."
+    pacman -S --noconfirm gnome-tweaks
+fi
+
+# 4. Membersihkan cache tema GTK
+echo "🧹 Membersihkan cache tema GTK..."
+gtk-update-icon-cache -f /usr/share/icons/*
+
+echo "✅ Instalasi Tema & Icon Everforest dan Tokyonight selesai!"
