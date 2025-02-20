@@ -11,6 +11,7 @@ echo "🚀 Memulai instalasi MariaDB, PHP, phpMyAdmin, Composer, dan Apache..."
 # 1. Install Apache Web Server
 echo "🌐 Menginstal Apache Web Server (httpd)..."
 pacman -S --noconfirm apache
+echo "<?php phpinfo(); ?>" | sudo tee /srv/http/info.php
 
 # Jalankan dan aktifkan Apache
 echo "🔄 Mengaktifkan dan menjalankan Apache..."
