@@ -29,11 +29,12 @@ chmod u+rw ~/.poshthemes/*.json
 rm ~/.poshthemes/themes.zip
 
 # Tambahkan ke config Fish Shell
-cp /config/config.fish ~/.config/fish/config.fish
+cp /config/config.fish ~/.config/fish/
 
 # 6. Mengganti Warna Terminal ke Everforest
 echo "🌲 Mengatur skema warna ke Everforest..."
+echo "Pilih skema warna: Ketik 124 untuk Everforest Dark Hard"
 bash -c "$(wget -qO- https://git.io/vQgMr)"
-echo "Pilih skema warna: Ketik 69 untuk Everforest Dark Hard"
+
 
 echo "✅ Instalasi selesai! Silakan logout dan login kembali untuk menerapkan perubahan."
