@@ -5,12 +5,6 @@ echo "📥 Mengunduh tema..."
 git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
 git clone https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git Everforest
 
-# Pastikan script dijalankan sebagai root
-if [[ $EUID -ne 0 ]]; then
-   echo "❌ Jalankan script ini sebagai root: sudo ./install-themes.sh"
-   exit 1
-fi
-
 # Fungsi untuk menginstal tema
 install_theme() {
     local theme_dir=$1
@@ -20,7 +14,7 @@ install_theme() {
 
     if [ -f "${theme_dir}/themes/install.sh" ]; then
         chmod +x "${theme_dir}/themes/install.sh"
-        bash "${theme_dir}/themes/install.sh"
+        bash sudo "${theme_dir}/themes/install.sh"
     else
         echo "❌ File install.sh tidak ditemukan di ${theme_dir}/themes/"
         exit 1
@@ -28,7 +22,7 @@ install_theme() {
 
     echo "🧰 Menginstal Icon ${theme_name}..."
     if [ -d "${theme_dir}/icons" ]; then
-        cp -r "${theme_dir}/icons/"* /usr/share/icons/
+        sudo cp -r "${theme_dir}/icons/"* /usr/share/icons/
     else
         echo "❌ Direktori ikon tidak ditemukan di ${theme_dir}/icons/"
     fi
