@@ -33,13 +33,13 @@ Install Fish dan oh-my-posh
 Install tema.
 
 ```
-sudo ./install_tema.sh
+./install_tema.sh
 ```
 
 Install PHP, composer, apache, mariadb, phpmyadmin.
 
 ```
-sudo ./install_tema.sh
+sudo ./install_php.sh
 ```
 
 ## Update Script
