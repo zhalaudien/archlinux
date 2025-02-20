@@ -42,7 +42,7 @@ fi
 
 echo "🧰 Install extensions gnome shell..."
 mkdir ~/.local/share/gnome-shell/extensions
-cp -r config/extensions/* $HOME/.local/share/gnome-shell
+cp -r config/extensions/* ~/.local/share/gnome-shell/extensions/
 
 # 4. Membersihkan cache tema GTK
 echo "🧹 Membersihkan cache tema GTK..."
