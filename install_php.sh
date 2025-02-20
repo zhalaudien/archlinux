@@ -58,6 +58,7 @@ EOF
 
 # Tambahkan konfigurasi PHP-FPM di httpd.conf jika belum ada
 sudo cp config/httpd.conf /etc/httpd/conf/httpd.conf
+sudo cp config/phpmyadmin.conf /etc/httpd/conf/extra/
 
 # Jalankan dan aktifkan PHP-FPM
 echo "🔄 Mengaktifkan dan memulai PHP-FPM..."
