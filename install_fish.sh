@@ -29,6 +29,7 @@ chmod u+rw ~/.poshthemes/*.json
 rm ~/.poshthemes/themes.zip
 
 # Tambahkan ke config Fish Shell
+mkdir -p $HOME/.config/fish/
 cp config/config.fish $HOME/.config/fish/
 
 # 6. Mengganti Warna Terminal ke Everforest
