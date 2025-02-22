@@ -8,7 +8,11 @@ sudo pacman -Syu --noconfirm
 echo "🧰 Menginstal aplikasi pendukung..."
 sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-profiles-daemon gnome-browser-connector gtk-engine-murrine neofetch htop
 
-# 3. Setup AUR dengan yay
+# 3. Install font
+echo "🧰 Install Font..."
+sudo pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra
+
+# 4. Setup AUR dengan yay
 if ! command -v yay &> /dev/null; then
     echo "🚀 Menginstal yay (AUR Helper)..."
     sudo pacman -S --needed --noconfirm base-devel git
@@ -19,6 +23,6 @@ if ! command -v yay &> /dev/null; then
     sudo rm -rf /tmp/yay-bin
 fi
 
-# 9. Cek status sistem
+# 5. Cek status sistem
 echo "📊 Informasi Sistem:"
 uname -r
