@@ -10,7 +10,7 @@ sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-pro
 
 # 3. Install font
 echo "🧰 Install Font..."
-sudo pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra
+sudo pacman -S --noconfirm noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra
 
 # 4. Setup AUR dengan yay
 if ! command -v yay &> /dev/null; then

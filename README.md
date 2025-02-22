@@ -18,7 +18,7 @@ git clone https://github.com/zhalaudien/archlinux.git
 cd archlinux/
 ```
 
-update system && install firefox.
+update system && install font, firefox.
 
 ```
 ./afterinstall.sh
