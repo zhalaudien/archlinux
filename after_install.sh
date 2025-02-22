@@ -12,9 +12,9 @@ sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-pro
 if ! command -v yay &> /dev/null; then
     echo "🚀 Menginstal yay (AUR Helper)..."
     sudo pacman -S --needed --noconfirm base-devel git
-    sudo -u $SUDO_USER git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin
+    $SUDO_USER git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin
     cd /tmp/yay-bin
-    sudo -u $SUDO_USER makepkg -si --noconfirm
+    $SUDO_USER makepkg -si --noconfirm
     cd ~
     sudo rm -rf /tmp/yay-bin
 fi
