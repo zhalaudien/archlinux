@@ -2,7 +2,7 @@
 
 # Pastikan script dijalankan sebagai root
 if [[ $EUID -ne 0 ]]; then
-    echo "❌ Jalankan script ini sebagai root: sudo ./install_php_apache.sh"
+    echo "❌ Jalankan script ini sebagai root: sudo ./install_php.sh"
     exit 1
 fi
 
