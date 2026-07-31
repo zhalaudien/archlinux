@@ -6,7 +6,10 @@ sudo pacman -Syu --noconfirm
 
 # 2. Install software
 echo "🧰 Menginstal aplikasi pendukung..."
-sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-profiles-daemon gnome-browser-connector gtk-engine-murrine neofetch htop
+sudo pacman -S --noconfirm firefox gnome-tweaks gnome-shell-extensions power-profiles-daemon gnome-browser-connector gtk-engine-murrine fastfetch htop
+
+echo "🧰 Enable Power Profile Daemon..."
+sudo systemctl enable --now power-profiles-daemon.service
 
 # 3. Install font
 echo "🧰 Install Font..."
