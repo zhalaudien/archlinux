@@ -42,6 +42,12 @@ Install PHP, composer, apache, mariadb, phpmyadmin.
 sudo ./install_php.sh
 ```
 
+Install Kernel Cachyos.
+
+```
+./install_kernel_cachyos.sh
+```
+
 ## Update Script
 
 Update script jika ada update dan perbaikan
