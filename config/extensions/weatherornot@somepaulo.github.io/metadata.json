@@ -6,13 +6,10 @@
   "original-author": "somepaulo@duck.com",
   "settings-schema": "org.gnome.shell.extensions.weatherornot",
   "shell-version": [
-    "45",
-    "46",
-    "47",
-    "48"
+    "50"
   ],
-  "url": "https://github.com/somepaulo/gnome-shell-extension-weather-or-not",
+  "url": "https://gitlab.gnome.org/somepaulo/weather-or-not",
   "uuid": "weatherornot@somepaulo.github.io",
-  "version": 18,
-  "version-name": "48"
+  "version": 22,
+  "version-name": "50"
 }

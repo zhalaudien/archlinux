@@ -6,6 +6,7 @@ import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {getLoginManager} from 'resource:///org/gnome/shell/misc/loginManager.js';
 
@@ -14,23 +15,30 @@ import {ArcMenuManager} from './arcmenuManager.js';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
+const [ShellVersion] = Config.PACKAGE_VERSION.split('.').map(s => Number(s));
+
 const InterfaceXml = `<node>
   <interface name="com.Extensions.ArcMenu">
     <method name="ToggleArcMenu"/>
+    <method name="ToggleStandaloneRunner"/>
   </interface>
 </node>`;
 
 export const DBusService = class {
     constructor() {
+        this._exported = false;
         this.ToggleArcMenu = () => {};
+        this.ToggleStandaloneRunner = () => {};
 
         this._dbusExportedObject = Gio.DBusExportedObject.wrapJSObject(InterfaceXml, this);
 
         const onBusAcquired = (connection, _name) => {
             try {
                 this._dbusExportedObject.export(connection, '/com/Extensions/ArcMenu');
+                this._exported = true;
             } catch (error) {
                 console.log(`ArcMenu Error - onBusAcquired export failed: ${error}`);
+                this._exported = false;
             }
         };
 
@@ -43,52 +51,19 @@ export const DBusService = class {
     }
 
     destroy() {
-        this._dbusExportedObject.unexport();
-        Gio.bus_unown_name(this._ownerId);
+        if (this._ownerId) {
+            Gio.bus_unown_name(this._ownerId);
+            this._ownerId = null;
+        }
+
+        if (this._dbusExportedObject && this._exported)
+            this._dbusExportedObject.unexport();
+        this._dbusExportedObject = null;
+        this._exported = null;
+        this.ToggleArcMenu = null;
+        this.ToggleStandaloneRunner  = null;
     }
 };
-
-export function convertOldSetting(settings, oldSetting, newSetting) {
-    const data = settings.get_value(oldSetting).deepUnpack();
-
-    if (!data.length)
-        return;
-
-    const newDataArray = [];
-
-    if (oldSetting === 'pinned-app-list') {
-        settings.set_strv(oldSetting, []);
-
-        for (let i = 0; i < data.length; i += 3) {
-            const newData = {};
-            if (data[i])
-                newData.name = data[i];
-            if (data[i + 1])
-                newData.icon = data[i + 1];
-            if (data[i + 2])
-                newData.id = data[i + 2];
-
-            newDataArray.push(newData);
-        }
-    } else {
-        settings.set_value(oldSetting, new GLib.Variant('aas', []));
-
-        data.forEach(entry => {
-            const newData = {};
-            if (entry[0])
-                newData.name = entry[0];
-            if (entry[1])
-                newData.icon = entry[1];
-            if (entry[2])
-                newData.id = entry[2];
-
-            newDataArray.push(newData);
-        });
-    }
-
-    settings.set_value(newSetting, new GLib.Variant('aa{ss}', newDataArray));
-    console.log(`Converted ${oldSetting} to ${newSetting}`);
-}
 
 export function activateHibernateOrSleep(powerType) {
     const loginManager = getLoginManager();
@@ -142,27 +117,77 @@ export function canHibernateOrSleep(callName, asyncCallback) {
     });
 }
 
-export const SettingsConnectionsHandler = class ArcMenuSettingsConnectionsHandler {
-    constructor(settings) {
-        this._connections = new Map();
-        this._settings = settings;
+/**
+ * Helper function to monitor 'changed' events on a variable number of GSettings keys using
+ * the same callback and binding object. It connects each key's `changed::${key}` signal to
+ * the provided callback via `connectObject`.
+ *
+ * @param {string[]} settingNamesArray Array of GSettings key names to monitor for changes.
+ * @param {Function} callback The callback function to invoke on any monitored setting change.
+ * @param {object} object The object to bind as `this` context for the callback connections.
+ */
+export function connectSettings(settingNamesArray, callback, object) {
+    ArcMenuManager.settings.connectObject(
+        ...settingNamesArray.flatMap(setting => [`changed::${setting}`, callback]),
+        object
+    );
+}
+
+/**
+ * A utility for debouncing callbacks using GLib timeouts.
+ * Useful for rapid GSetting key changes to prevent excessive callbacks.
+ * Schedules executions after a delay, canceling and rescheduling on repeated calls per ID.
+ * Supports multiple independent debouncers keyed by unique IDs.
+ */
+export class Debouncer {
+    constructor(delay = 300) {
+        this._delay = delay;
+        this._timers = new Map();
+        this._idles = new Map();
     }
 
-    connect(...args) {
-        const callback = args.pop();
-        for (const event of args)
-            this._connections.set(this._settings.connect(`changed::${event}`, callback), this._settings);
+    debounce(id, callback) {
+        this._cancel(id);
+
+        const timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._delay, () => {
+            const idleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                callback();
+                this._idles.delete(id);
+                return GLib.SOURCE_REMOVE;
+            });
+            this._idles.set(id, idleId);
+            this._timers.delete(id);
+            return GLib.SOURCE_REMOVE;
+        });
+
+        this._timers.set(id, timeoutId);
+    }
+
+    _cancel(id) {
+        if (this._timers.has(id)) {
+            const timeoutId = this._timers.get(id);
+            GLib.source_remove(timeoutId);
+            this._timers.delete(id);
+        }
+        if (this._idles.has(id)) {
+            const timeoutId = this._idles.get(id);
+            GLib.source_remove(timeoutId);
+            this._idles.delete(id);
+        }
     }
 
     destroy() {
-        this._connections.forEach((object, id) => {
-            object.disconnect(id);
-            id = null;
-        });
+        for (const id of this._timers.values())
+            GLib.source_remove(id);
+        for (const id of this._idles.values())
+            GLib.source_remove(id);
 
-        this._connections = null;
+        this._idles.clear();
+        this._idles = null;
+        this._timers.clear();
+        this._timers = null;
     }
-};
+}
 
 export function convertToButton(item) {
     item.tooltipLocation = Constants.TooltipLocation.BOTTOM_CENTERED;
@@ -188,7 +213,7 @@ export function convertToGridLayout(item) {
 
     item.add_style_class_name('ArcMenuIconGrid');
     item.set({
-        vertical: true,
+        ...getOrientationProp(true),
         x_align: Clutter.ActorAlign.CENTER,
         tooltipLocation: Constants.TooltipLocation.BOTTOM_CENTERED,
         style: `width: ${width}px; height: ${height}px;`,
@@ -268,26 +293,23 @@ export function getGridIconSize(iconSizeEnum, defaultIconSize) {
 }
 
 export function getCategoryDetails(iconTheme, currentCategory) {
-    const extensionPath = ArcMenuManager.extension.path;
-
     let name = null, gicon = null, fallbackIcon = null;
 
     for (const entry of Constants.Categories) {
         if (entry.CATEGORY === currentCategory) {
             name = entry.NAME;
-            gicon = Gio.icon_new_for_string(entry.ICON);
+            gicon = Gio.Icon.new_for_string(entry.IMAGE);
             return [name, gicon, fallbackIcon];
         }
     }
 
     if (currentCategory === Constants.CategoryType.HOME_SCREEN) {
         name = _('Home');
-        gicon = Gio.icon_new_for_string('computer-symbolic');
+        gicon = Gio.Icon.new_for_string('computer-symbolic');
         return [name, gicon, fallbackIcon];
     } else {
         name = currentCategory.get_name();
         const categoryIcon = currentCategory.get_icon();
-        const fallbackIconDirectory = `${extensionPath}/icons/category-icons/`;
 
         if (!categoryIcon)
             return [name, gicon, fallbackIcon];
@@ -302,16 +324,16 @@ export function getCategoryDetails(iconTheme, currentCategory) {
         if (categoryIconType === Constants.CategoryIconType.SYMBOLIC) {
             const icon = iconTheme.lookup_icon(symbolicName, 26, St.IconLookupFlags.FORCE_SYMBOLIC);
             if (icon) {
-                gicon = Gio.icon_new_for_string(symbolicName);
+                gicon = Gio.Icon.new_for_string(symbolicName);
             } else {
-                const filePath = `${fallbackIconDirectory}${symbolicIconFile}`;
-                const file = Gio.File.new_for_path(filePath);
+                const filePath = `${Constants.RESOURCE_PATH}/categories/${symbolicIconFile}`;
+                const file = Gio.File.new_for_uri(filePath);
                 if (file.query_exists(null))
-                    gicon = Gio.icon_new_for_string(`${fallbackIconDirectory}${symbolicIconFile}`);
+                    gicon = Gio.Icon.new_for_string(`${Constants.RESOURCE_PATH}/categories/${symbolicIconFile}`);
             }
         }
 
-        fallbackIcon = Gio.icon_new_for_string(`${fallbackIconDirectory}${symbolicIconFile}`);
+        fallbackIcon = Gio.Icon.new_for_string(`${Constants.RESOURCE_PATH}/categories/${symbolicIconFile}`);
         return [name, gicon, fallbackIcon];
     }
 }
@@ -337,36 +359,6 @@ export function getPowerTypeFromShortcutCommand(command) {
     default:
         return Constants.PowerType.POWER_OFF;
     }
-}
-
-export function getMenuButtonIcon(path) {
-    const extensionPath = ArcMenuManager.extension.path;
-    const {settings} = ArcMenuManager;
-
-    const iconType = settings.get_enum('menu-button-icon');
-    const iconDirectory = `${extensionPath}/icons/hicolor/16x16/actions/`;
-
-    if (iconType === Constants.MenuIconType.CUSTOM) {
-        if (path && GLib.file_test(path, GLib.FileTest.IS_REGULAR))
-            return path;
-        else
-            return path;
-    } else if (iconType === Constants.MenuIconType.DISTRO_ICON) {
-        const iconEnum = settings.get_int('distro-icon');
-        const iconPath = `${iconDirectory + Constants.DistroIcons[iconEnum].PATH}.svg`;
-        if (GLib.file_test(iconPath, GLib.FileTest.IS_REGULAR))
-            return iconPath;
-    } else {
-        const iconEnum = settings.get_int('arc-menu-icon');
-        const iconPath = `${iconDirectory + Constants.MenuIcons[iconEnum].PATH}.svg`;
-        if (Constants.MenuIcons[iconEnum].PATH === 'view-app-grid-symbolic')
-            return 'view-app-grid-symbolic';
-        else if (GLib.file_test(iconPath, GLib.FileTest.IS_REGULAR))
-            return iconPath;
-    }
-
-    log('ArcMenu Error - Failed to set menu button icon. Set to System Default.');
-    return 'start-here-symbolic';
 }
 
 export function findSoftwareManager() {
@@ -436,6 +428,31 @@ export function getCategories(info) {
     return categoriesStr.split(';');
 }
 
+/**
+ * Returns the display name for an application.
+ * If 'apps-show-generic-names' is enabled, returns GenericName (falls back to Name).
+ *
+ * @param {Shell.App} app
+ * @returns {*|string}
+ */
+export function getAppDisplayName(app) {
+    if (!app)
+        return '';
+
+    const showGenericNames = ArcMenuManager.settings.get_boolean('apps-show-generic-names');
+
+    if (showGenericNames) {
+        const appInfo = app.get_app_info();
+        if (appInfo) {
+            const genericName = appInfo.get_generic_name();
+            if (genericName && genericName.length > 0)
+                return genericName;
+        }
+    }
+
+    return app.get_name();
+}
+
 export function findBestFolderName(apps) {
     const appInfos = apps.map(app => app.get_app_info());
 
@@ -474,27 +491,50 @@ export function openPrefs(uuid) {
         extension.openPreferences();
 }
 
-export function getDashToPanelPosition(settings, index) {
-    var positions = null;
-    var side = 'NONE';
+export function createPanActionScrollView(menuButton, params) {
+    const {settings} = ArcMenuManager;
+    const showScrollbars = settings.get_boolean('scrollbars-visible');
+    const overlayScrollbars = settings.get_boolean('scrollbars-overlay');
 
-    try {
-        positions = JSON.parse(settings.get_string('panel-positions'));
-        side = positions[index];
-    } catch (e) {
-        log(`Error parsing Dash to Panel positions: ${e.message}`);
+    const scrollView = new St.ScrollView({
+        ...params,
+        clip_to_allocation: true,
+        hscrollbar_policy: St.PolicyType.NEVER,
+        vscrollbar_policy: showScrollbars ? St.PolicyType.AUTOMATIC : St.PolicyType.EXTERNAL,
+        overlay_scrollbars: overlayScrollbars,
+    });
+
+    // With overlay_scrollbars = true, the scrollbar appears behind the menu items
+    // Maybe a bug in GNOME? Fix it with this.
+    if (overlayScrollbars) {
+        scrollView.get_children().forEach(child => {
+            if (child instanceof St.ScrollBar)
+                child.z_position = 1;
+        });
     }
 
-    if (side === 'TOP')
-        return St.Side.TOP;
-    else if (side === 'RIGHT')
-        return St.Side.RIGHT;
-    else if (side === 'BOTTOM')
-        return St.Side.BOTTOM;
-    else if (side === 'LEFT')
-        return St.Side.LEFT;
-    else
-        return St.Side.BOTTOM;
+    const onPanFunc = (a, mb, sv) => {
+        mb.clearTooltipShowingId();
+        mb.hideTooltip();
+
+        let delta;
+        if (a.get_delta)
+            delta = a.get_delta().get_y();
+        else
+            [, , delta] = a.get_motion_delta(0);
+
+        const {vadjustment} = getScrollViewAdjustments(sv);
+        vadjustment.value -= delta;
+        return false;
+    };
+
+    createAction({
+        actor: scrollView,
+        actionType: Constants.ClutterAction.PAN,
+        actionParams: {interpolate: true},
+        actionArgs: {onPan: action => onPanFunc(action, menuButton, scrollView)},
+    });
+    return scrollView;
 }
 
 /**
@@ -535,4 +575,125 @@ export function getScrollViewAdjustments(scrollView) {
         hadjustment,
         vadjustment,
     };
+}
+
+/**
+ *
+ * @param {boolean} vertical
+ * @description GNOME 48 - St.BoxLayout uses 'orientation' instead of 'vertical'
+ */
+export function getOrientationProp(vertical) {
+    if (ShellVersion >= 48)
+        return {orientation: vertical ? Clutter.Orientation.VERTICAL : Clutter.Orientation.HORIZONTAL};
+    else
+        return {vertical};
+}
+
+/**
+ * Creates and adds gestures or actions to a ClutterActor based on the provided action type.
+ * Supports ClutterGestures (GNOME 49+) or ClutterActions (GNOME 48 and earlier), depending on the Shell version.
+ *
+ * @param {object} args - Configuration object for the action.
+ * @param {Clutter.Actor} args.actor - The ClutterActor to attach the actions to.
+ * @param {Constants.ClutterAction} args.actionType - The type of action to create.
+ * @param {object} [args.actionParams] - Optional parameters for initializing the gesture/action.
+ * @param {object} args.actionArgs - Callbacks for handling gesture/action events.
+ * @param {Function} [args.actionArgs.onClick] - Callback for click events.
+ * @param {Function} [args.actionArgs.onPressed] - Callback for press state changes.
+ * @param {Function} [args.actionArgs.onLongPress] - Callback for long-press events.
+ * @param {Function} [args.actionArgs.onRightClick] - Callback for right-click events.
+ * @param {Function} [args.actionArgs.onPan] - Callback for pan events.
+ * @returns {object} An object mapping action names to their instances. Possible keys include:
+ *   - `clickAction`: `Clutter.ClickGesture` (GNOME 49+) or `Clutter.ClickAction`.
+ *   - `longPressAction`: `Clutter.LongPressGesture` (GNOME 49+ only).
+ *   - `rightClickAction`: `Clutter.ClickGesture` (GNOME 49+ only).
+ *   - `panAction`: `Clutter.PanGesture` (GNOME 49+) or `Clutter.PanAction`.
+ *   Returns an empty object if `actionType` is unsupported or `args` is invalid.
+ */
+export function createAction(args) {
+    const actions = ShellVersion >= 49 ? getGestures(args) : getActions(args);
+
+    Object.values(actions).forEach(action => {
+        args.actor.add_action(action);
+    });
+
+    return actions;
+}
+
+// ClutterGestures (GNOME 49+)
+function getGestures(args) {
+    const actions = {};
+    const {actionType, actionParams, actionArgs} = args;
+
+    switch (actionType) {
+    case Constants.ClutterAction.CLICK: {
+        const clickGesture = new Clutter.ClickGesture(actionParams);
+        actions.clickAction = clickGesture;
+
+        if (actionArgs.onClick)
+            clickGesture.connect('recognize', actionArgs.onClick);
+        if (actionArgs.onPressed)
+            clickGesture.connect('notify::pressed', actionArgs.onPressed);
+        if (actionArgs.onLongPress) {
+            const longPressGesture = new Clutter.LongPressGesture();
+            actions.longPressAction = longPressGesture;
+            longPressGesture.connect('recognize', actionArgs.onLongPress);
+        }
+        if (actionArgs.onRightClick) {
+            const rightClickGesture = new Clutter.ClickGesture({
+                required_button: Clutter.BUTTON_SECONDARY,
+                recognize_on_press: true,
+            });
+            actions.rightClickAction = rightClickGesture;
+            rightClickGesture.connect('recognize', actionArgs.onRightClick);
+        }
+        break;
+    }
+    case Constants.ClutterAction.PAN: {
+        const panGesture = new Clutter.PanGesture();
+        actions.panAction = panGesture;
+
+        if (actionArgs.onPan)
+            panGesture.connect('pan-update', actionArgs.onPan);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return actions;
+}
+
+// ClutterActions (GNOME 48 and earlier)
+function getActions(args) {
+    const actions = {};
+    const {actionType, actionParams, actionArgs} = args;
+
+    switch (actionType) {
+    case Constants.ClutterAction.CLICK: {
+        const clickAction = new Clutter.ClickAction(actionParams);
+        actions.clickAction = clickAction;
+
+        if (actionArgs.onClick)
+            clickAction.connect('clicked', actionArgs.onClick);
+        if (actionArgs.onPressed)
+            clickAction.connect('notify::pressed', actionArgs.onPressed);
+        if (actionArgs.onLongPress)
+            clickAction.connect('long-press', actionArgs.onLongPress);
+        break;
+    }
+    case Constants.ClutterAction.PAN: {
+        const panAction = new Clutter.PanAction(actionParams);
+        actions.panAction = panAction;
+
+        if (actionArgs.onPan)
+            panAction.connect('pan', actionArgs.onPan);
+
+        break;
+    }
+    default:
+        break;
+    }
+
+    return actions;
 }

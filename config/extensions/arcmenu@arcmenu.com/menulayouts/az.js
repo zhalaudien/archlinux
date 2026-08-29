@@ -1,28 +1,35 @@
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
 import St from 'gi://St';
 
+import {ArcMenuManager} from '../arcmenuManager.js';
 import {BaseMenuLayout} from './baseMenuLayout.js';
 import * as Constants from '../constants.js';
 import * as MW from '../menuWidgets.js';
+import {getOrientationProp} from '../utils.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-export const Layout = class AzLayout extends BaseMenuLayout {
+const MenuView = {
+    PINNED_APPS: 0,
+    FREQUENT_APPS: 1,
+};
+
+export class Layout extends BaseMenuLayout {
     static {
         GObject.registerClass(this);
     }
 
     constructor(menuButton) {
         super(menuButton, {
-            has_search: true,
             display_type: Constants.DisplayType.GRID,
             search_display_type: Constants.DisplayType.GRID,
             search_results_spacing: 4,
             context_menu_location: Constants.ContextMenuLocation.BOTTOM_CENTERED,
             column_spacing: 4,
             row_spacing: 4,
-            vertical: true,
+            ...getOrientationProp(true),
             default_menu_width: 460,
             icon_grid_size: Constants.GridIconSize.LARGE_RECT,
             category_icon_size: Constants.MEDIUM_ICON_SIZE,
@@ -45,7 +52,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.FILL,
-            vertical: true,
+            ...getOrientationProp(true),
         });
         this.add_child(this._mainBox);
 
@@ -54,7 +61,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             y_expand: false,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.START,
-            vertical: false,
+            ...getOrientationProp(true),
         });
         this._mainBox.add_child(this.topBox);
 
@@ -76,7 +83,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
         this._mainBox.add_child(this.allAppsButton);
 
         this.applicationsBox = new St.BoxLayout({
-            vertical: true,
+            ...getOrientationProp(true),
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
@@ -84,7 +91,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             style: 'padding-bottom: 10px;',
             style_class: 'arcmenu-margin-box',
         });
-        this.applicationsScrollBox = this._createScrollBox({
+        this.applicationsScrollBox = this._createScrollView({
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
@@ -99,7 +106,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             y_expand: false,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.END,
-            vertical: false,
+            ...getOrientationProp(true),
         });
         this._mainBox.add_child(this.bottomBox);
 
@@ -108,20 +115,35 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.CENTER,
-            vertical: false,
+            ...getOrientationProp(false),
         });
         this.actionsBox.style = 'margin: 0px 10px; spacing: 10px;';
 
-        const searchBarLocation = this._settings.get_enum('searchbar-default-top-location');
+        const mergePanels = ArcMenuManager.settings.get_boolean('az-layout-merge-panels');
+        const searchBarLocation = ArcMenuManager.settings.get_enum('searchbar-default-top-location');
         if (searchBarLocation === Constants.SearchbarLocation.TOP) {
-            this.topBox.add_child(this.searchEntry);
+            if (mergePanels) {
+                this.topBox.add_child(this.actionsBox);
+                this.topBox.add_child(this.searchEntry);
+                this.bottomBox.hide();
+                this._mainBox.style = 'padding-bottom: 10px;';
+                this.applicationsBox.style = null;
+            } else {
+                this.topBox.add_child(this.searchEntry);
+                this.bottomBox.add_child(this.actionsBox);
+            }
+        } else if (mergePanels) {
             this.bottomBox.add_child(this.actionsBox);
+            this.bottomBox.add_child(this.searchEntry);
+            this.topBox.hide();
+            this._mainBox.style = 'padding-top: 10px;';
         } else {
             this.topBox.add_child(this.actionsBox);
             this.bottomBox.add_child(this.searchEntry);
         }
 
-        this._settings.connectObject('changed::az-layout-extra-shortcuts', () => this._createExtraButtons(), this);
+        ArcMenuManager.settings.connectObject('changed::az-layout-extra-shortcuts', () => this._createExtraButtons(), this);
+        ArcMenuManager.settings.connectObject('changed::default-menu-view-az', () => this.setDefaultMenuView(), this);
         this._createExtraButtons();
 
         this.updateStyle();
@@ -129,6 +151,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
         this.loadCategories();
         this.loadPinnedApps();
         this.setDefaultMenuView();
+        this._connectAppChangedEvents();
     }
 
     _createExtraButtons() {
@@ -138,7 +161,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
         this.actionsBox.add_child(avatarMenuItem);
 
         const isContainedInCategory = false;
-        const extraButtons = this._settings.get_value('az-layout-extra-shortcuts').deep_unpack();
+        const extraButtons = ArcMenuManager.settings.get_value('az-layout-extra-shortcuts').deep_unpack();
 
         for (let i = 0; i < extraButtons.length; i++) {
             const {id} = extraButtons[i];
@@ -157,7 +180,7 @@ export const Layout = class AzLayout extends BaseMenuLayout {
             }
         }
 
-        const powerDisplayStyle = this._settings.get_enum('power-display-style');
+        const powerDisplayStyle = ArcMenuManager.settings.get_enum('power-display-style');
         let leaveButton;
         if (powerDisplayStyle === Constants.PowerDisplayStyle.IN_LINE)
             leaveButton = new MW.PowerOptionsBox(this);
@@ -172,11 +195,52 @@ export const Layout = class AzLayout extends BaseMenuLayout {
         super.loadPinnedApps();
     }
 
+    loadFrequentApps() {
+        this.frequentAppsList?.forEach(item => {
+            item.destroy();
+        });
+        this.frequentAppsList = [];
+
+        const mostUsed = Shell.AppUsage.get_default().get_most_used();
+
+        if (mostUsed.length < 1)
+            return;
+
+        for (let i = 0; i < mostUsed.length; i++) {
+            if (!mostUsed[i])
+                continue;
+
+            const appInfo = mostUsed[i].get_app_info();
+            if (appInfo.should_show()) {
+                const item = new MW.ApplicationMenuItem(this, mostUsed[i], Constants.DisplayType.GRID);
+                this.frequentAppsList.push(item);
+            }
+        }
+
+        const maxItems = ArcMenuManager.settings.get_int('az-layout-max-frequent-apps');
+        if (this.frequentAppsList.length > maxItems)
+            this.frequentAppsList.splice(maxItems);
+    }
+
     setDefaultMenuView() {
         this.setGridLayout(Constants.DisplayType.GRID, 4);
         super.setDefaultMenuView();
 
-        this.displayPinnedApps();
+        const defaultMenuView = ArcMenuManager.settings.get_enum('default-menu-view-az');
+        if (defaultMenuView === MenuView.PINNED_APPS) {
+            this.allAppsButton.label.text = _('Pinned');
+            this.displayPinnedApps();
+        } else if (defaultMenuView === MenuView.FREQUENT_APPS) {
+            this.allAppsButton.label.text = _('Frequent');
+            this.displayFrequentApps();
+        }
+    }
+
+    displayFrequentApps() {
+        this.loadFrequentApps();
+
+        this._displayAppList(this.frequentAppsList, Constants.CategoryType.HOME_SCREEN, this.applicationsGrid);
+        this.allAppsButton.visible = true;
     }
 
     displayAllApps() {
@@ -265,8 +329,12 @@ export const Layout = class AzLayout extends BaseMenuLayout {
     _onDestroy() {
         if (this.arcMenu)
             this.arcMenu.box.style = null;
+
+        this.frequentAppsList?.forEach(item => {
+            item.destroy();
+        });
         this.backButton.destroy();
         this.allAppsButton.destroy();
         super._onDestroy();
     }
-};
+}

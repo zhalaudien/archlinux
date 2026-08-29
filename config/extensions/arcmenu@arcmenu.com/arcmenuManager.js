@@ -9,14 +9,6 @@ export class ArcMenuManager {
         return ArcMenuManager._singleton;
     }
 
-    static get customStylesheet() {
-        return ArcMenuManager.getDefault().customStylesheet;
-    }
-
-    static set customStylesheet(stylesheet) {
-        ArcMenuManager.getDefault().customStylesheet = stylesheet;
-    }
-
     static get extension() {
         return ArcMenuManager.getDefault();
     }
@@ -25,8 +17,8 @@ export class ArcMenuManager {
         return ArcMenuManager.getDefault().settings;
     }
 
-    static get settingsControllers() {
-        return ArcMenuManager.getDefault().settingsControllers;
+    static get menuControllers() {
+        return ArcMenuManager.getDefault().menuControllers;
     }
 
     destroy() {

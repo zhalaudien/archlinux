@@ -21,6 +21,7 @@
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
+import Shell from 'gi://Shell';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -48,7 +49,16 @@ export default class WeatherOrNotExtension extends Extension {
         if (!_indicator) {
             _indicator = new WeatherIndicator(weather, networkIcon);
             _indicator.add_style_class_name('weatherornot');
-            _indicator.connect('button-press-event', () => weather.activateApp());
+            _indicator.clear_actions();
+            
+            const clickGesture = new Clutter.ClickGesture();
+            clickGesture.connect('recognize', () => {
+                const app = Shell.AppSystem.get_default()
+                    .lookup_app('org.gnome.Weather.desktop');
+                if (app)
+                    app.activate();
+            });
+            _indicator.add_action(clickGesture);
         }
 
         if (!_spacer) {

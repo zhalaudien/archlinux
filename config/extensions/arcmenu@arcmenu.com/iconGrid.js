@@ -19,12 +19,10 @@ export const DragLocation = {
     BOTTOM_EDGE: 6,
 };
 
-// eslint-disable-next-line jsdoc/require-jsdoc
 function swap(value, length) {
     return length - value - 1;
 }
 
-// eslint-disable-next-line jsdoc/require-jsdoc
 function animateIconPosition(icon, box, nChangedIcons) {
     if (!icon.has_allocation() || icon.allocation.equal(box) || icon.opacity === 0) {
         icon.allocate(box);
@@ -70,7 +68,7 @@ export const IconGridLayout = GObject.registerClass({
             'First row align', 'First row align',
             GObject.ParamFlags.READWRITE,
             Clutter.ActorAlign.$gtype,
-            Clutter.ActorAlign.CENTER),
+            Clutter.ActorAlign.START),
 
     },
 }, class IconGridLayout extends Clutter.LayoutManager {
@@ -82,6 +80,7 @@ export const IconGridLayout = GObject.registerClass({
         this._height = 0;
         this._items = new Map();
         this._children = [];
+        this._visibleChildren = [];
         this._childrenMaxSize = null;
     }
 
@@ -109,7 +108,7 @@ export const IconGridLayout = GObject.registerClass({
 
         let columns = 0;
         if (this.firstRowAlign === Clutter.ActorAlign.CENTER) {
-            const visibleChildren = this._children.filter(child => child.visible);
+            const visibleChildren = this._visibleChildren;
             // if the amount of visiblechildren is less than the amount of columns
             // set columns to visiblechildren.length in order to center the items
             columns = visibleChildren.length < this.columns ? visibleChildren.length : this.columns;
@@ -127,6 +126,10 @@ export const IconGridLayout = GObject.registerClass({
         return leftEmptySpace;
     }
 
+    _updateVisibleChildren() {
+        this._visibleChildren = this._children.filter(actor => actor.visible);
+    }
+
     _unlinkItem(item) {
         const itemData = this._items.get(item);
 
@@ -142,6 +145,7 @@ export const IconGridLayout = GObject.registerClass({
 
         const itemIndex = this._children.indexOf(item);
         this._children.splice(itemIndex, 1);
+        this._updateVisibleChildren();
     }
 
     _addItem(item, index) {
@@ -153,6 +157,7 @@ export const IconGridLayout = GObject.registerClass({
             destroyId: item.connect('destroy', () => this._removeItemData(item)),
             visibleId: item.connect('notify::visible', () => {
                 this._shouldEaseItems = true;
+                this._updateVisibleChildren();
             }),
             queueRelayoutId: item.connect('queue-relayout', () => {
                 this._childrenMaxSize = null;
@@ -160,6 +165,7 @@ export const IconGridLayout = GObject.registerClass({
         });
 
         this._children.splice(index, 0, item);
+        this._updateVisibleChildren();
     }
 
     vfunc_set_container(container) {
@@ -171,33 +177,39 @@ export const IconGridLayout = GObject.registerClass({
     }
 
     vfunc_get_preferred_height() {
-        const children = this._children;
+        const children = this._visibleChildren;
         const totalColumns = this.columns;
 
         let minRowHeight = 0;
         let natRowHeight = 0;
         let natHeight = 0;
         let firstRow = true;
+        let column = 0;
 
         for (let i = 0; i < children.length; i += 1) {
             const child = children[i];
-            if (!child.visible)
-                continue;
-
+            const isSeparator = child instanceof MW.ArcMenuSeparator;
             const [childMinHeight, childNatHeight] = child.get_preferred_height(-1);
 
             minRowHeight = Math.max(minRowHeight, childMinHeight);
             natRowHeight = Math.max(natRowHeight, childNatHeight);
 
-            const newRow = i % totalColumns === 0;
+            const newRow = column % totalColumns === 0;
             if (firstRow && newRow) {
                 firstRow = false;
                 natHeight = natRowHeight; // + this.rowSpacing + PADDING;
+                natRowHeight = 0;
+            } else if (isSeparator) {
+                natHeight += childNatHeight + this.rowSpacing;
                 natRowHeight = 0;
             } else if (newRow) {
                 natHeight += natRowHeight + this.rowSpacing;
                 natRowHeight = 0;
             }
+
+            column++;
+            if (column === this.columns || isSeparator)
+                column = 0;
         }
 
         this._height = natHeight;
@@ -205,7 +217,7 @@ export const IconGridLayout = GObject.registerClass({
     }
 
     vfunc_allocate() {
-        const children = this._children;
+        const children = this._visibleChildren;
         const shouldEaseItems = this._shouldEaseItems;
         const sizeChanged = this._sizeChanged;
         const isRtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
@@ -218,29 +230,42 @@ export const IconGridLayout = GObject.registerClass({
         let nChangedIcons = 0;
         let rowHeight = 0;
         let y = 0;
+        let column = 0;
+        let rtlColumn;
+        let naturalWidth = 0;
+        let naturalHeight = 0;
 
         for (let i = 0; i < children.length; i += 1) {
             const child = children[i];
 
-            let column = i % this.columns;
-            if (isRtl)
-                column = swap(column, this.columns);
-
-            const newRow = column === 0;
-
-            let [,, naturalWidth, naturalHeight] = child.get_preferred_size();
-
+            const isSeparator = child instanceof MW.ArcMenuSeparator;
             const xFill = child.x_align === Clutter.ActorAlign.FILL;
-            if (xFill)
+
+            if (isRtl)
+                rtlColumn = swap(column, this.columns);
+
+            const newRow = column % this.columns === 0;
+
+            [,, naturalWidth, naturalHeight] = child.get_preferred_size();
+
+            if (isSeparator)
+                naturalWidth = this._width;
+            else if (xFill)
                 naturalWidth = this._width / this.columns;
 
-            const x = xOffset + column * (naturalWidth + this.columnSpacing);
+            const adjustedColumn = rtlColumn ?? column;
+            let x;
+            if (isSeparator)
+                x = 0;
+            else
+                x = xOffset + adjustedColumn * (naturalWidth + this.columnSpacing);
 
             // The first item in a row will determine the row height
-            if (newRow) {
+            // add previous child naturalHeight offset
+            if (isSeparator || newRow)
                 y += rowHeight;
-                rowHeight = naturalHeight + this.rowSpacing;
-            }
+
+            rowHeight = naturalHeight + this.rowSpacing;
 
             childBox.set_origin(Math.floor(x), Math.floor(y));
             childBox.set_size(naturalWidth, naturalHeight);
@@ -249,6 +274,11 @@ export const IconGridLayout = GObject.registerClass({
                 child.allocate(childBox);
             else if (animateIconPosition(child, childBox, nChangedIcons))
                 nChangedIcons++;
+
+            column++;
+
+            if (column === this.columns || isSeparator)
+                column = 0;
         }
 
         this._sizeChanged = false;
@@ -256,8 +286,10 @@ export const IconGridLayout = GObject.registerClass({
     }
 
     addItem(item, index = -1) {
-        if (this._items.has(item))
-            throw new Error(`Item ${item} already added to IconGridLayout`);
+        if (this._items.has(item)) {
+            console.log(`ArcMenu Error: Item ${item} already added to IconGridLayout`);
+            return;
+        }
 
         if (!this._container)
             return;
@@ -273,8 +305,10 @@ export const IconGridLayout = GObject.registerClass({
     }
 
     moveItem(item, newPosition) {
-        if (!this._items.has(item))
-            throw new Error(`Item ${item} is not part of the IconGridLayout`);
+        if (!this._items.has(item)) {
+            console.log(`ArcMenu Error: Item ${item} is not part of the IconGridLayout`);
+            return;
+        }
 
         this._shouldEaseItems = true;
 
@@ -284,8 +318,10 @@ export const IconGridLayout = GObject.registerClass({
     }
 
     removeItem(item) {
-        if (!this._items.has(item))
-            throw new Error(`Item ${item} is not part of the IconGridLayout`);
+        if (!this._items.has(item)) {
+            console.log(`ArcMenu Error: Item ${item} is not part of the IconGridLayout`);
+            return;
+        }
 
         if (!this._container)
             return;
@@ -431,7 +467,7 @@ class IconGrid extends St.Widget {
             row_spacing: 0,
             force_columns: 0,
             halign: Clutter.ActorAlign.FILL,
-            first_row_align: Clutter.ActorAlign.CENTER,
+            first_row_align: Clutter.ActorAlign.START,
         });
 
         const layoutManager = new IconGridLayout(layoutParams);
@@ -441,8 +477,6 @@ class IconGrid extends St.Widget {
             x_expand: true,
             x_align: Clutter.ActorAlign.FILL,
         });
-
-        this._settings = ArcMenuManager.settings;
 
         // only need acceptDrop for the main pinned-apps grid
         if (acceptDrop) {
@@ -461,7 +495,7 @@ class IconGrid extends St.Widget {
         if (!source.folderId)
             return false;
 
-        const pinnedAppsList = this._settings.get_value('pinned-apps').deepUnpack();
+        const pinnedAppsList = ArcMenuManager.settings.get_value('pinned-apps').deepUnpack();
         for (let i = 0; i < pinnedAppsList.length; i++) {
             if (pinnedAppsList[i].id === source.pinnedAppData.id)
                 return false;
@@ -501,9 +535,9 @@ class IconGrid extends St.Widget {
         folderSettings.set_value('pinned-apps', new GLib.Variant('aa{ss}', folderPinnedApps));
 
         // add app to main pinned apps
-        const pinnedAppsList = this._settings.get_value('pinned-apps').deepUnpack();
+        const pinnedAppsList = ArcMenuManager.settings.get_value('pinned-apps').deepUnpack();
         pinnedAppsList.push(sourceData);
-        this._settings.set_value('pinned-apps', new GLib.Variant('aa{ss}', pinnedAppsList));
+        ArcMenuManager.settings.set_value('pinned-apps', new GLib.Variant('aa{ss}', pinnedAppsList));
 
         return true;
     }
@@ -584,4 +618,3 @@ class IconGrid extends St.Widget {
         return this.layout_manager.getDropTarget(x, y);
     }
 });
-

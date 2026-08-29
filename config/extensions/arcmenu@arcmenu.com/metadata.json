@@ -12,10 +12,12 @@
     "45",
     "46",
     "47",
-    "48"
+    "48",
+    "49",
+    "50"
   ],
   "url": "https://gitlab.com/arcmenu/ArcMenu",
   "uuid": "arcmenu@arcmenu.com",
-  "version": 64,
-  "version-name": "64"
+  "version": 73,
+  "version-name": "69.2"
 }

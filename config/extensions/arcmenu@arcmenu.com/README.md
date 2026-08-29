@@ -18,7 +18,7 @@ ArcMenu is an application menu for GNOME Shell, designed to provide a more famil
 
 Thank you for using ArcMenu! If you enjoy it and would like to help support its continued development, please consider making a donation. Your support, no matter the amount, makes a big difference.
 
-[![Donate via Paypal](https://gitlab.com/arcmenu/arcmenu-assets/raw/master/images/paypal-badge.svg){width=170}](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=53CWA7NR743WC&item_name=Support+ArcMenu&currency_code=USD&source=url) [![Buy My a Coffee](https://gitlab.com/arcmenu/arcmenu-assets/raw/master/images/bmc-yellow.svg){width=170}](https://buymeacoffee.com/azaech)
+[![Donate via Paypal](https://gitlab.com/arcmenu/arcmenu-assets/raw/master/images/paypal-badge.svg){width=170}](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=53CWA7NR743WC&item_name=Support+ArcMenu&currency_code=USD&source=url) [![Buy My a Coffee](https://gitlab.com/arcmenu/arcmenu-assets/raw/master/images/bmc-badge.svg){width=170}](https://buymeacoffee.com/azaech)
 
 
 -----
@@ -48,7 +48,9 @@ Thank you for using ArcMenu! If you enjoy it and would like to help support its 
 * The 'ArcMenu' layout design is insipired by the Zorin OS menu extension.
 * ArcMenu utilizes various code from GNOME Shell and the GNOME Shell extensions package.
 * ArcMenu Logo and other ArcMenu icon assets created by [AndyC](https://gitlab.com/LinxGem33). Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-* Fallback category icons included in ArcMenu are copied from [Ubuntu Yaru Icons](https://github.com/ubuntu/yaru) and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+* Fallback Category Icons
+    * [Ubuntu Yaru Icons](https://github.com/ubuntu/yaru) licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+    * [MoreWaita](https://github.com/somepaulo/MoreWaita) [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 -----
 
@@ -68,7 +70,11 @@ In 2017, ArcMenu _started_ as a fork of the Zorin menu extension by Zorin OS. As
 
 **@[charlesg99](https://github.com/charlesg99)** | **@[harshadgavali](https://gitlab.com/harshadgavali)** | **@[O. Giesmann ](https://gitlab.com/Etamuk)** | **@[aleayr ](https://gitlab.com/aleayr)**
 
-**@[JasonLG1979](https://github.com/JasonLG1979)**  | **@[lexruee](https://github.com/lexruee)** | **@[aleayr](https://gitlab.com/aleayr)** | **@[osmancoskun](https://gitlab.com/osmancoskun) !184** | **@[Balló György](https://gitlab.com/City-busz) !189, !215, !226**
+**@[JasonLG1979](https://github.com/JasonLG1979)**  | **@[lexruee](https://github.com/lexruee)** | **@[aleayr](https://gitlab.com/aleayr)** | **@[osmancoskun](https://gitlab.com/osmancoskun) !184**
+
+**@[Balló György](https://gitlab.com/City-busz) !189, !215, !226, !241, !242**
+
+**@[RunasSudo](https://gitlab.com/RunasSudo) !271** | **@[innovisus](https://gitlab.com/innovisus) !273** | **@[morgan9e](https://gitlab.com/morgan9e) !274**
 
 -----
 
@@ -86,16 +92,17 @@ In 2017, ArcMenu _started_ as a fork of the Zorin menu extension by Zorin OS. As
 | **Estonian** | **@[rimasx](https://gitlab.com/rimasx)** |
 | **Finnish** | **@[artnay](https://gitlab.com/artnay)** |
 | **French** | **@[Nilvus](https://gitlab.com/Nilvus), @[steve.kossouho](https://gitlab.com/steve.kossouho), @[D_PETER](https://gitlab.com/D_PETER)** |
-| **German** | **@[Etamuk](https://gitlab.com/Etamuk), @[daPhipz](https://gitlab.com/daPhipz)** |
+| **Georgian** | **@[papava.e](https://gitlab.com/papava.e)**|
+| **German** | **@[Etamuk](https://gitlab.com/Etamuk), @[daPhipz](https://gitlab.com/daPhipz), @[RaceTheMaSe](https://gitlab.com/RaceTheMaSe)**|
 | **Hebrew** | **@[omeritzics](https://gitlab.com/omeritzics)** |
 | **Hungarian** | **@[stevendobay](https://gitlab.com/stevendobay), @[Balázs Meskó](https://gitlab.com/meskobalazs)** |
-| **Italian** | **@[Vombato](https://gitlab.com/Vombato), @[matguidi](https://gitlab.com/matguidi)** |
-| **Japanese** | **@[Hayao0819](https://gitlab.com/Hayao0819)** |
+| **Italian** | **@[Vombato](https://gitlab.com/Vombato), @[matguidi](https://gitlab.com/matguidi), @[Nicola C.](https://gitlab.com/nico9889)** |
+| **Japanese** | **@[Hayao0819](https://gitlab.com/Hayao0819), @[Umoxfo](https://gitlab.com/Umoxfo)** |
 | **Korean** | **@[HyeonWol](https://gitlab.com/hyeonwol123)** |
 | **Norwegian** | **@[sigbjokj](https://gitlab.com/sigbjokj), @[sssandum](https://gitlab.com/sssandum)** |
 | **Occitan** | **@[Mejans](https://gitlab.com/Mejans), @[Quentin](https://gitlab.com/quenty_occitania)** |
 | **Polish** | **@[alex4401](https://gitlab.com/alex4401), @[Karpfly](https://gitlab.com/MacKarp), @[Piotr Strebski](https://gitlab.com/strebski), @[Adam Lewicki](https://gitlab.com/a.lewicki95)** |
-| **Russian** | **@[Ivan](https://gitlab.com/vantu5z), @[Ser82-png](https://gitlab.com/Ser82-png)** |
+| **Russian** | **@[Ivan](https://gitlab.com/vantu5z), @[Ser82-png](https://gitlab.com/Ser82-png), @[innovisus](https://gitlab.com/innovisus)** |
 | **Silesian** | **@[gkkulik](https://gitlab.com/gkkulik)** |
 | **Simplified Chinese** | **@[skygmin](https://gitlab.com/skygmin), @[doufu3344](https://gitlab.com/doufu3344), @[wxtewx](https://gitlab.com/wxtewx), @[Anduin2017](https://gitlab.com/Anduin2017)** |
 | **Sinhalese** | **@[sayuri](https://gitlab.com/sayuri-), @[helabasa](https://gitlab.com/helabasa)** |

@@ -1,77 +1,117 @@
 import Gio from 'gi://Gio';
 
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const PaypalLink = 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=53CWA7NR743WC&item_name=Support+ArcMenu&source=url';
-const BuyMeACoffeeLink = 'https://buymeacoffee.com/azaech';
+import {RESOURCE_PATH, SettingsPage} from './constants.js';
 
-function openUri(uri) {
-    Gio.app_info_launch_default_for_uri(uri, global.create_app_launch_context(0, -1));
-}
+const PROJECT_NAME = 'ArcMenu';
+const PROJECT_ICON = 'emblems/settings-arcmenu-logo.svg';
+
+const [ShellVersion] = Config.PACKAGE_VERSION.split('.').map(s => Number(s));
 
 /**
- * A MessageTray notification that alerts the user that ArcMenu has received an update
+ * A MessageTray notification that notifies users that the extension has been updated.
  *
- * Shows users what's new and displays donation options.
+ * Shows users what's new and displays donation options on major releases.
+ * Will not show if user is installing the extension for the first time.
+ * Can be disabled with setting 'update-notifier-enabled'.
  *
- * Shown only once per new release.
  * @param {*} extension
  */
-
-export const UpdateNotifier = class UpdateNotifier {
+export class UpdateNotification {
     constructor(extension) {
+        const {metadata} = extension;
         this._extension = extension;
-        this._metadata = this._extension.metadata;
-        this._iconPath = `${this._extension.path}/icons/hicolor/16x16/actions/settings-arcmenu-logo.svg`;
-        this._version = this._metadata['version-name'] ? this._metadata['version-name'] : this._metadata.version.toString();
+        this._settings = extension.settings;
 
-        this._whatsNewLink = `https://gitlab.com/arcmenu/ArcMenu/-/releases/v${this._version}`;
+        this._version = metadata.version ?? 0;
+        this._versionName = metadata['version-name'] ?? this._version.toString();
+        this._iconPath = `${RESOURCE_PATH}/${PROJECT_ICON}`;
 
-        this._showNotification();
+        this._maybeShowNotification();
+    }
+
+    destroy() {
+        this._settings = null;
+        this._extension = null;
+        this._version = null;
+        this._versionName = null;
+        this._iconPath = null;
+    }
+
+    _isMinorRelease() {
+        const versionParts = this._versionName.split('.').map(s => Number(s));
+        const minor = versionParts[1] ?? 0;
+        return minor > 0;
+    }
+
+    _maybeShowNotification() {
+        const lastShownVersion = this._settings.get_int('update-notifier-project-version');
+        const isNewVersion = lastShownVersion < this._version;
+
+        if (!isNewVersion)
+            return;
+
+        this._settings.set_int('update-notifier-project-version', this._version);
+
+        const showNotification = this._settings.get_boolean('update-notifier-enabled') && lastShownVersion > 0;
+        if (showNotification)
+            this._showNotification();
     }
 
     _showNotification() {
-        const title = _('ArcMenu v%s Released!').format(this._version);
-        const body = _('Thank you for using ArcMenu! If you enjoy it and would like to help support its continued development, please consider making a donation. Your support, no matter the amount, makes a big difference.');
-        const iconPath = `${this._extension.path}/icons/hicolor/16x16/actions/settings-arcmenu-logo.svg`;
+        const isMinorRelease = this._isMinorRelease();
 
-        // Use MessageTray.SystemNotificationSource for GNOME versions < 46
-        if (MessageTray.SystemNotificationSource) {
-            const source = new MessageTray.SystemNotificationSource();
-            Main.messageTray.add(source);
+        /* TRANSLATORS: This will display as "ProjectName v21 Released!" as an example.*/
+        const title = _('%s v%s Released!').format(PROJECT_NAME, this._versionName);
+        let body;
+        if (isMinorRelease)
+            body = _("Check out what's new.");
+        else
+            body = _('Thank you for using %s! If you enjoy it and would like to help support its continued development, please consider making a donation.').format(PROJECT_NAME);
 
-            const notification = new MessageTray.Notification(source, title, body, {
-                gicon: Gio.icon_new_for_string(iconPath),
-            });
+        const gicon = Gio.Icon.new_for_string(this._iconPath);
 
-            notification.setUrgency(MessageTray.Urgency.CRITICAL);
+        const source = this._getSource(PROJECT_NAME, 'application-x-addon-symbolic');
+        Main.messageTray.add(source);
+
+        const notification = this._getNotification(source, title, body, gicon);
+        notification.urgency = MessageTray.Urgency.CRITICAL;
+
+        if (!isMinorRelease) {
             notification.resident = true;
-            this._addNotificationActions(notification);
-
-            source.showNotification(notification);
-        } else {
-            const source = MessageTray.getSystemSource();
-            const notification = new MessageTray.Notification({
-                source,
-                title,
-                body,
-                gicon: Gio.icon_new_for_string(iconPath),
-            });
-
-            notification.urgency = MessageTray.Urgency.CRITICAL;
-            notification.resident = true;
-            this._addNotificationActions(notification);
-
-            source.addNotification(notification);
+            notification.addAction(_('Donate'), () => this._openSettingsPage(SettingsPage.DONATE));
         }
+
+        notification.addAction(_("What's new?"), () => this._openSettingsPage(SettingsPage.WHATS_NEW));
+        notification.addAction(_('Dismiss'), () => notification.destroy());
+
+        if (ShellVersion >= 46)
+            source.addNotification(notification);
+        else
+            source.showNotification(notification);
     }
 
-    _addNotificationActions(notification) {
-        notification.addAction(_("What's new?"), () => openUri(this._whatsNewLink));
-        notification.addAction(_('Donate via PayPal'), () => openUri(PaypalLink));
-        notification.addAction(_('Buy Me a Coffee'), () => openUri(BuyMeACoffeeLink));
+    _getSource(title, iconName) {
+        if (ShellVersion >= 46)
+            return new MessageTray.Source({title, iconName});
+        else
+            return new MessageTray.Source(title, iconName);
     }
-};
+
+    _getNotification(source, title, body, gicon) {
+        if (ShellVersion >= 46)
+            return new MessageTray.Notification({source, title, body, gicon});
+        else
+            return new MessageTray.Notification(source, title, body, {gicon});
+    }
+
+    _openSettingsPage(page) {
+        this._settings.set_int('prefs-visible-page', page);
+        this._extension.openPreferences();
+    }
+}

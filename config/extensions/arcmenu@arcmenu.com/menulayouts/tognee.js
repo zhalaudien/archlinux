@@ -2,27 +2,33 @@ import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 
+import {ArcMenuManager} from '../arcmenuManager.js';
 import {BaseMenuLayout} from './baseMenuLayout.js';
 import * as Constants from '../constants.js';
 import * as MW from '../menuWidgets.js';
+import {getOrientationProp} from '../utils.js';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-export const Layout = class TogneeLayout extends BaseMenuLayout {
+const MenuView = {
+    CATEGORIES_LIST: 0,
+    ALL_PROGRAMS: 1,
+};
+
+export class Layout extends BaseMenuLayout {
     static {
         GObject.registerClass(this);
     }
 
     constructor(menuButton) {
         super(menuButton, {
-            has_search: true,
             display_type: Constants.DisplayType.LIST,
             search_display_type: Constants.DisplayType.LIST,
             context_menu_location: Constants.ContextMenuLocation.RIGHT,
             column_spacing: 0,
             row_spacing: 0,
             default_menu_width: 290,
-            vertical: true,
+            ...getOrientationProp(true),
             category_icon_size: Constants.MEDIUM_ICON_SIZE,
             apps_icon_size: Constants.EXTRA_SMALL_ICON_SIZE,
             quicklinks_icon_size: Constants.EXTRA_SMALL_ICON_SIZE,
@@ -36,7 +42,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         });
 
         this._mainBox = new St.BoxLayout({
-            vertical: false,
+            ...getOrientationProp(false),
             x_expand: true,
             y_expand: true,
             y_align: Clutter.ActorAlign.FILL,
@@ -47,21 +53,21 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         this.appBox = new St.BoxLayout({
             x_expand: true,
             y_expand: true,
-            vertical: true,
+            ...getOrientationProp(true),
             y_align: Clutter.ActorAlign.FILL,
         });
-        this.applicationsScrollBox = this._createScrollBox({
+        this.applicationsScrollBox = this._createScrollView({
             x_expand: true,
             y_expand: true,
             y_align: Clutter.ActorAlign.START,
             style_class: this._disableFadeEffect ? '' : 'small-vfade',
         });
         this.appBox.add_child(this.applicationsScrollBox);
-        this.applicationsBox = new St.BoxLayout({vertical: true});
+        this.applicationsBox = new St.BoxLayout({...getOrientationProp(true)});
         this._addChildToParent(this.applicationsScrollBox, this.applicationsBox);
 
         this.navigateBox = new St.BoxLayout({
-            vertical: true,
+            ...getOrientationProp(true),
             x_expand: true,
             y_expand: true,
             y_align: Clutter.ActorAlign.END,
@@ -72,7 +78,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         this.navigateBox.add_child(this.backButton);
         this.appBox.add_child(this.navigateBox);
 
-        const searchbarLocation = this._settings.get_enum('searchbar-default-bottom-location');
+        const searchbarLocation = ArcMenuManager.settings.get_enum('searchbar-default-bottom-location');
         if (searchbarLocation === Constants.SearchbarLocation.TOP) {
             this.searchEntry.add_style_class_name('arcmenu-search-top');
             this.appBox.insert_child_at_index(this.searchEntry, 0);
@@ -83,7 +89,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
 
         // Contains shortcutsBox and power buttons
         this.quickBox = new St.BoxLayout({
-            vertical: true,
+            ...getOrientationProp(true),
             y_expand: true,
             y_align: Clutter.ActorAlign.FILL,
             style: 'spacing: 6px;',
@@ -92,20 +98,20 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         const verticalSeparator = new MW.ArcMenuSeparator(this, Constants.SeparatorStyle.MEDIUM,
             Constants.SeparatorAlignment.VERTICAL);
 
-        const horizontalFlip = this._settings.get_boolean('enable-horizontal-flip');
+        const horizontalFlip = ArcMenuManager.settings.get_boolean('enable-horizontal-flip');
         this._mainBox.add_child(horizontalFlip ? this.appBox : this.quickBox);
         this._mainBox.add_child(verticalSeparator);
         this._mainBox.add_child(horizontalFlip ? this.quickBox : this.appBox);
 
         this.shortcutsBox = new St.BoxLayout({
-            vertical: true,
+            ...getOrientationProp(true),
             x_expand: false,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.FILL,
             style: 'spacing: 6px;',
         });
-        this.shortcutsScrollBox = this._createScrollBox({
+        this.shortcutsScrollBox = this._createScrollView({
             x_expand: false,
             y_expand: true,
             x_align: Clutter.ActorAlign.START,
@@ -118,15 +124,15 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
 
         this._displayPlaces();
 
-        const haveDirectoryShortcuts = this._settings.get_value('directory-shortcuts').deep_unpack().length > 0;
-        const haveApplicationShortcuts = this._settings.get_value('application-shortcuts').deep_unpack().length > 0;
+        const haveDirectoryShortcuts = ArcMenuManager.settings.get_value('directory-shortcuts').deep_unpack().length > 0;
+        const haveApplicationShortcuts = ArcMenuManager.settings.get_value('application-shortcuts').deep_unpack().length > 0;
         if (haveDirectoryShortcuts && haveApplicationShortcuts) {
             const separator = new MW.ArcMenuSeparator(this, Constants.SeparatorStyle.LONG,
                 Constants.SeparatorAlignment.HORIZONTAL);
             this.shortcutsBox.add_child(separator);
         }
 
-        const applicationShortcuts = this._settings.get_value('application-shortcuts').deep_unpack();
+        const applicationShortcuts = ArcMenuManager.settings.get_value('application-shortcuts').deep_unpack();
         for (let i = 0; i < applicationShortcuts.length; i++) {
             const shortcutMenuItem = this.createMenuItem(applicationShortcuts[i], Constants.DisplayType.BUTTON, false);
             if (shortcutMenuItem.shouldShow)
@@ -136,7 +142,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         }
 
         let leaveButton;
-        const powerDisplayStyle = this._settings.get_enum('power-display-style');
+        const powerDisplayStyle = ArcMenuManager.settings.get_enum('power-display-style');
         if (powerDisplayStyle === Constants.PowerDisplayStyle.IN_LINE)
             leaveButton = new MW.PowerOptionsBox(this, true);
         else
@@ -151,10 +157,11 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         this.loadCategories();
         this.loadPinnedApps();
         this.setDefaultMenuView();
+        this._connectAppChangedEvents();
     }
 
     updateWidth(setDefaultMenuView) {
-        const widthAdjustment = this._settings.get_int('menu-width-adjustment');
+        const widthAdjustment = ArcMenuManager.settings.get_int('menu-width-adjustment');
         let menuWidth = this.default_menu_width + widthAdjustment;
         // Set a 175px minimum limit for the menu width
         menuWidth = Math.max(175, menuWidth);
@@ -165,7 +172,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
     }
 
     _displayPlaces() {
-        const directoryShortcuts = this._settings.get_value('directory-shortcuts').deep_unpack();
+        const directoryShortcuts = ArcMenuManager.settings.get_value('directory-shortcuts').deep_unpack();
         for (let i = 0; i < directoryShortcuts.length; i++) {
             const directoryData = directoryShortcuts[i];
             const isContainedInCategory = false;
@@ -178,7 +185,7 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
         this.categoryDirectories = null;
         this.categoryDirectories = new Map();
 
-        const extraCategories = this._settings.get_value('extra-categories').deep_unpack();
+        const extraCategories = ArcMenuManager.settings.get_value('extra-categories').deep_unpack();
         for (let i = 0; i < extraCategories.length; i++) {
             const [categoryEnum, shouldShow] = extraCategories[i];
             if (shouldShow) {
@@ -210,10 +217,10 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
     setDefaultMenuView() {
         super.setDefaultMenuView();
 
-        const defaultMenuView = this._settings.get_enum('default-menu-view-tognee');
-        if (defaultMenuView === Constants.DefaultMenuViewTognee.CATEGORIES_LIST)
+        const defaultMenuView = ArcMenuManager.settings.get_enum('default-menu-view-tognee');
+        if (defaultMenuView === MenuView.CATEGORIES_LIST)
             this.displayCategories();
-        else if (defaultMenuView === Constants.DefaultMenuViewTognee.ALL_PROGRAMS)
+        else if (defaultMenuView === MenuView.ALL_PROGRAMS)
             this.displayAllApps();
     }
 
@@ -237,4 +244,4 @@ export const Layout = class TogneeLayout extends BaseMenuLayout {
             this.activeCategoryType = Constants.CategoryType.SEARCH_RESULTS;
         }
     }
-};
+}

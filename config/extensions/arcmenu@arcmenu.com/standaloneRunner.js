@@ -1,6 +1,5 @@
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 
@@ -8,83 +7,64 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {ArcMenu} from './menuButton.js';
-import {ArcMenuManager} from './arcmenuManager.js';
-import * as Constants from './constants.js';
 import * as LayoutHandler from './menulayouts/layoutHandler.js';
 import * as MW from './menuWidgets.js';
 
 export const StandaloneRunner = class ArcMenuStandaloneRunner {
     constructor() {
-        this._destroyed = false;
-        this._settings = ArcMenuManager.settings;
-        this._extension = ArcMenuManager.extension;
-
         // Link search providers to this menu
         this.searchProviderDisplayId = 'StandaloneRunner';
 
-        this.tooltipShowing = false;
-        this.tooltipShowingID = null;
-        this.tooltip = new MW.Tooltip(this);
+        this._tooltipShowingID = null;
+        this._tooltip = new MW.Tooltip(this);
 
         // Create Main Menus - ArcMenu and arcMenu's context menu
         this.arcMenu = new ArcMenu(Main.layoutManager.dummyCursor, 0.5, St.Side.TOP, this);
         this.arcMenu.connect('open-state-changed', this._onOpenStateChanged.bind(this));
 
-        this.menuManager = new PopupMenu.PopupMenuManager(Main.panel);
+        this.menuManager = new PopupMenu.PopupMenuManager();
         this.menuManager._changeMenu = () => {};
         this.menuManager.addMenu(this.arcMenu);
 
         // Context Menus for applications and other menu items
-        this.contextMenuManager = new PopupMenu.PopupMenuManager(this.arcMenu);
+        this.contextMenuManager = new PopupMenu.PopupMenuManager();
         this.contextMenuManager._changeMenu = () => {};
-        this.contextMenuManager._onMenuSourceEnter = menu => {
-            if (this.contextMenuManager.activeMenu && this.contextMenuManager.activeMenu !== menu)
-                return Clutter.EVENT_STOP;
-
-            return Clutter.EVENT_PROPAGATE;
-        };
 
         // Sub Menu Manager - Control all other popup menus
-        this.subMenuManager = new PopupMenu.PopupMenuManager(this.arcMenu);
+        this.subMenuManager = new PopupMenu.PopupMenuManager();
         this.subMenuManager._changeMenu = () => {};
 
         this.createMenuLayout();
     }
 
-    get extension() {
-        return this._extension;
+    get isOpen() {
+        return this.arcMenu?.isOpen;
     }
 
-    get settings() {
-        return this._settings;
-    }
-
-    async createMenuLayout() {
-        this._clearTooltipShowingId();
-        this._clearTooltip();
+    createMenuLayout() {
+        this.clearTooltipShowingId();
+        this.hideTooltip(true);
 
         this._forcedMenuLocation = false;
 
         this._destroyMenuLayout();
 
-        if (this._destroyed)
-            return;
-
         const standaloneRunner = true;
-        this._menuLayout = await LayoutHandler.createMenuLayout(this, Constants.MenuLayout.RUNNER, standaloneRunner);
-
-        // MenuButton may be destroyed while createMenuLayout() is running
-        if (this._destroyed && this._menuLayout) {
-            this._menuLayout.arcMenu = null;
-            this._menuLayout.destroy();
-            return;
-        }
+        this._menuLayout = LayoutHandler.createMenuLayout(this, 'runner', standaloneRunner);
 
         if (this._menuLayout)
             this.arcMenu.box.add_child(this._menuLayout);
     }
 
-    closeOtherMenus() {
+    onArcMenuClose() {
+        // Clear active state for activeMenuItem
+        if (this._menuLayout?.activeMenuItem)
+            this._menuLayout.activeMenuItem.active = false;
+
+        this._closeOtherMenus();
+    }
+
+    _closeOtherMenus() {
         if (this.contextMenuManager.activeMenu)
             this.contextMenuManager.activeMenu.toggle();
         if (this.subMenuManager.activeMenu)
@@ -92,7 +72,7 @@ export const StandaloneRunner = class ArcMenuStandaloneRunner {
     }
 
     toggleMenu() {
-        this.closeOtherMenus();
+        this._closeOtherMenus();
 
         if (!this.arcMenu.isOpen)
             this._menuLayout.updateLocation();
@@ -110,32 +90,41 @@ export const StandaloneRunner = class ArcMenuStandaloneRunner {
         }
     }
 
-    _clearTooltipShowingId() {
-        if (this.tooltipShowingID) {
-            GLib.source_remove(this.tooltipShowingID);
-            this.tooltipShowingID = null;
+    clearTooltipShowingId() {
+        if (this._tooltipShowingID) {
+            GLib.source_remove(this._tooltipShowingID);
+            this._tooltipShowingID = null;
         }
     }
 
-    _clearTooltip() {
-        this.tooltipShowing = false;
-        if (this.tooltip) {
-            this.tooltip.hide();
-            this.tooltip.sourceActor = null;
-        }
+    showTooltip(sourceActor, location, titleLabel, description, displayType) {
+        this.clearTooltipShowingId();
+        this._tooltipShowingID = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 750, () => {
+            this._tooltip.setTooltipData(sourceActor, location, titleLabel, description, displayType);
+            this._tooltip.show();
+            this._tooltipShowingID = null;
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    hideTooltip(instant) {
+        this._tooltip?.hide(instant);
     }
 
     destroy() {
-        this._destroyed = true;
-        this._clearTooltipShowingId();
-        this._clearTooltip();
+        this.clearTooltipShowingId();
+        this.hideTooltip(true);
         this._destroyMenuLayout();
 
-        this.tooltip?.destroy();
-        this.tooltip = null;
+        this._tooltip?.destroy();
+        this._tooltip = null;
 
         this.arcMenu?.destroy();
         this.arcMenu = null;
+
+        this.menuManager = null;
+        this.contextMenuManager = null;
+        this.subMenuManager = null;
     }
 
     updateLocation() {
@@ -167,8 +156,8 @@ export const StandaloneRunner = class ArcMenuStandaloneRunner {
             if (Main.panel.menuManager && Main.panel.menuManager.activeMenu)
                 Main.panel.menuManager.activeMenu.toggle();
         } else  if (!this.arcMenu.isOpen) {
-            this._clearTooltipShowingId();
-            this._clearTooltip();
+            this.clearTooltipShowingId();
+            this.hideTooltip(true);
         }
     }
 };

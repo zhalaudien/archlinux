@@ -1,145 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="arcmenu">
-    <enum id='org.gnome.shell.extensions.arcmenu.menulayout'>
-        <value value='0' nick='Default'/>
-        <value value='1' nick='Brisk'/>
-        <value value='2' nick='Whisker'/>
-        <value value='3' nick='GnomeMenu'/>
-        <value value='4' nick='Mint'/>
-        <value value='5' nick='Elementary'/>
-        <value value='6' nick='GnomeOverview'/>
-        <value value='7' nick='Redmond'/>
-        <value value='8' nick='Unity'/>
-        <value value='9' nick='Budgie'/>
-        <value value='10' nick='Insider'/>
-        <value value='11' nick='Runner'/>
-        <value value='12' nick='Chromebook'/>
-        <value value='13' nick='Raven'/>
-        <value value='14' nick='Tognee'/>
-        <value value='15' nick='Plasma'/>
-        <value value='16' nick='Windows'/>
-        <value value='17' nick='Eleven'/>
-        <value value='18' nick='AZ'/>
-        <value value='19' nick='Enterprise'/>
-        <value value='20' nick='Pop'/>
-        <value value='21' nick='Sleek'/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.forcemenulocation'>
-        <value value='0' nick='Off'/>
-        <value value='1' nick='TopCentered'/>
-        <value value='2' nick='BottomCentered'/>
-        <value value='3' nick='MonitorCentered'/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.menu-position'>
-        <value value="0" nick="Left"/>
-        <value value="1" nick="Center"/>
-        <value value="2" nick="Right"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.menu-button-click-action'>
-        <value value="0" nick="ArcMenu"/>
-        <value value="1" nick="ContextMenu"/>
-        <value value="2" nick="None"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.raven-position'>
-        <value value="0" nick="Left"/>
-        <value value="1" nick="Right"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.menu-button-appearance'>
-        <value value="0" nick="Icon"/>
-        <value value="1" nick="Text"/>
-        <value value="2" nick="Icon_Text"/>
-        <value value="3" nick="Text_Icon"/>
-        <value value="4" nick="None"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.avatar-style'>
-        <value value="0" nick="Round"/>
-        <value value="1" nick="Square"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.menu-button-icon'>
-        <value value="0" nick="Menu_Icon"/>
-        <value value="1" nick="Distro_Icon"/>
-        <value value="2" nick="Custom_Icon"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view'>
-        <value value="0" nick="Pinned_Apps"/>
-        <value value="1" nick="Categories_List"/>
-        <value value="2" nick="Frequent_Apps"/>
-        <value value="3" nick="All_Programs"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.all-apps-button-action'>
-        <value value="0" nick="Categories_List"/>
-        <value value="1" nick="All_Programs"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-tognee'>
-        <value value="0" nick="Categories_List"/>
-        <value value="1" nick="All_Programs"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-redmond'>
-        <value value="0" nick="All_Programs"/>
-        <value value="1" nick="Pinned_Apps"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.runner-position'>
-        <value value="0" nick="Top"/>
-        <value value="1" nick="Centered"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.search-display-style'>
-        <value value="0" nick="List"/>
-        <value value="1" nick="Grid"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.searchbar-location'>
-        <value value="0" nick="Bottom"/>
-        <value value="1" nick="Top"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.menuitem-location'>
-        <value value="0" nick="Bottom"/>
-        <value value="1" nick="Top"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.power-display-style'>
-        <value value="0" nick="Default"/>
-        <value value="1" nick="In_Line"/>
-        <value value="2" nick="Menu"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.icon-sizes'>
-        <value value="0" nick="Default"/>
-        <value value="1" nick="ExtraSmall"/>
-        <value value="2" nick="Small"/>
-        <value value="3" nick="Medium"/>
-        <value value="4" nick="Large"/>
-        <value value="5" nick="Extralarge"/>
-        <value value="6" nick="Hidden"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.grid-icon-sizes'>
-        <value value="0" nick="Default"/>
-        <value value="1" nick="Small"/>
-        <value value="2" nick="Medium"/>
-        <value value="3" nick="Large"/>
-        <value value="4" nick="Small_Rect"/>
-        <value value="5" nick="Medium_Rect"/>
-        <value value="6" nick="Large_Rect"/>
-        <value value="7" nick="Custom"/>
-    </enum>
-    <enum id='org.gnome.shell.extensions.arcmenu.category-icon-type'>
-        <value value="0" nick="Full_Color"/>
-        <value value="1" nick="Symbolic"/>
-    </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.forcemenulocation'>
+      <value value='0' nick='Off'/>
+      <value value='1' nick='TopCentered'/>
+      <value value='2' nick='TopLeft'/>
+      <value value='3' nick='TopRight'/>
+      <value value='4' nick='BottomCentered'/>
+      <value value='5' nick='BottomLeft'/>
+      <value value='6' nick='BottomRight'/>
+      <value value='7' nick='LeftCentered'/>
+      <value value='8' nick='RightCentered'/>
+      <value value='9' nick='MonitorCentered'/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.menu-position'>
+      <value value="0" nick="Left"/>
+      <value value="1" nick="Center"/>
+      <value value="2" nick="Right"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.menu-button-click-action'>
+      <value value="0" nick="ArcMenu"/>
+      <value value="1" nick="ContextMenu"/>
+      <value value="2" nick="None"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.raven-position'>
+      <value value="0" nick="Left"/>
+      <value value="1" nick="Right"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.menu-button-appearance'>
+      <value value="0" nick="Icon"/>
+      <value value="1" nick="Text"/>
+      <value value="2" nick="Icon_Text"/>
+      <value value="3" nick="Text_Icon"/>
+      <value value="4" nick="None"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.avatar-style'>
+      <value value="0" nick="Round"/>
+      <value value="1" nick="Square"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view'>
+      <value value="0" nick="Pinned_Apps"/>
+      <value value="1" nick="Categories_List"/>
+      <value value="2" nick="Frequent_Apps"/>
+      <value value="3" nick="All_Programs"/>
+      <value value="4" nick="Pinned_And_Frequent_Apps"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.all-apps-button-action'>
+      <value value="0" nick="Categories_List"/>
+      <value value="1" nick="All_Programs"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-tognee'>
+      <value value="0" nick="Categories_List"/>
+      <value value="1" nick="All_Programs"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-redmond'>
+      <value value="0" nick="All_Programs"/>
+      <value value="1" nick="Pinned_Apps"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-az'>
+      <value value="0" nick="Pinned_Apps"/>
+      <value value="1" nick="Frequent Apps"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.default-menu-view-runner'>
+      <value value="0" nick="Default"/>
+      <value value="1" nick="Pinned_Apps"/>
+      <value value="2" nick="Frequent Apps"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.runner-position'>
+      <value value="0" nick="Top"/>
+      <value value="1" nick="Centered"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.search-display-style'>
+      <value value="0" nick="List"/>
+      <value value="1" nick="Grid"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.searchbar-location'>
+      <value value="0" nick="Bottom"/>
+      <value value="1" nick="Top"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.menuitem-location'>
+      <value value="0" nick="Bottom"/>
+      <value value="1" nick="Top"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.power-display-style'>
+      <value value="0" nick="Default"/>
+      <value value="1" nick="In_Line"/>
+      <value value="2" nick="Menu"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.icon-sizes'>
+      <value value="0" nick="Default"/>
+      <value value="1" nick="ExtraSmall"/>
+      <value value="2" nick="Small"/>
+      <value value="3" nick="Medium"/>
+      <value value="4" nick="Large"/>
+      <value value="5" nick="Extralarge"/>
+      <value value="6" nick="Hidden"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.grid-icon-sizes'>
+      <value value="0" nick="Default"/>
+      <value value="1" nick="Small"/>
+      <value value="2" nick="Medium"/>
+      <value value="3" nick="Large"/>
+      <value value="4" nick="Small_Rect"/>
+      <value value="5" nick="Medium_Rect"/>
+      <value value="6" nick="Large_Rect"/>
+      <value value="7" nick="Custom"/>
+  </enum>
+  <enum id='org.gnome.shell.extensions.arcmenu.category-icon-type'>
+      <value value="0" nick="Full_Color"/>
+      <value value="1" nick="Symbolic"/>
+  </enum>
+
   <schema id="org.gnome.shell.extensions.arcmenu.pinned-apps-folders">
     <key name="pinned-apps" type="aa{ss}">
       <default>[]</default>
       <summary>Pinned Apps in the folder</summary>
     </key>
   </schema>
+
   <schema path="/org/gnome/shell/extensions/arcmenu/" id="org.gnome.shell.extensions.arcmenu">
-    <key type="b" name="show-update-notification-v64">
+    <key type="i" name="update-notifier-project-version">
+      <default>0</default>
+      <summary>The project version of when an update notification was shown</summary>
+    </key>
+    <key type="b" name="update-notifier-enabled">
       <default>true</default>
-      <summary>Show an update notification - once per new release</summary>
+      <summary>Enable/Disable the update notifications</summary>
     </key>
     <key type="i" name="menu-position-alignment">
       <default>50</default>
       <summary>Menu position alignment</summary>
     </key>
-    <key name="menu-layout" enum="org.gnome.shell.extensions.arcmenu.menulayout">
-      <default>'Default'</default>
-      <summary>menu layout</summary>
+    <key type='s' name="menu-layout">
+      <default>'arcmenu'</default>
+      <summary>Menu layout</summary>
+      <choices>
+        <choice value='11'/>
+        <choice value='arcmenu'/>
+        <choice value='az'/>
+        <choice value='brisk'/>
+        <choice value='budgie'/>
+        <choice value='chromebook'/>
+        <choice value='elementary'/>
+        <choice value='enterprise'/>
+        <choice value='gnome-menu'/>
+        <choice value='gnome-overview'/>
+        <choice value='insider'/>
+        <choice value='mint'/>
+        <choice value='plasma'/>
+        <choice value='pop'/>
+        <choice value='raven'/>
+        <choice value='redmond'/>
+        <choice value='runner'/>
+        <choice value='sleek'/>
+        <choice value='tognee'/>
+        <choice value='unity'/>
+        <choice value='whisker'/>
+        <choice value='windows'/>
+        <choice value='zest'/>
+    </choices>
     </key>
     <key type="b" name="override-menu-theme">
       <default>false</default>
@@ -287,13 +305,30 @@
       <default>'Symbolic'</default>
       <summary>Shortcut icon type. Full_Color or Symbolic</summary>
     </key>
-    <key type="b" name="disable-scrollview-fade-effect">
-      <default>false</default>
-      <summary>disable the fade effect on scrollviews</summary>
+    <key type="b" name="scrollview-fade-effect">
+      <default>true</default>
+      <summary>Enable the fade effect on scrollviews</summary>
+    </key>
+    <key type="b" name="scrollbars-visible">
+      <default>true</default>
+      <summary>Show/hide scrollbars on scrollviews</summary>
+    </key>
+    <key type="b" name="scrollbars-overlay">
+      <default>true</default>
+      <summary>Enable/disable overlay scrollbars</summary>
     </key>
     <key type="b" name="apps-show-extra-details">
       <default>false</default>
       <summary>Show a larger icon and extra app details</summary>
+    </key>
+    <key type="b" name="apps-show-generic-names">
+      <default>false</default>
+      <summary>Show generic application names</summary>
+      <description>Show GenericName instead of Name. Falls back to Name if GenericName is unavailable.</description>
+    </key>
+    <key type="b" name="search-hidden">
+      <default>false</default>
+      <summary>Hide search entry in ArcMenu. Search entry will be hidden when empty.</summary>
     </key>
     <key type="i" name="max-search-results">
       <default>5</default>
@@ -327,21 +362,25 @@
       <default>false</default>
       <summary>Activate Categories on Hover</summary>
     </key>
-    <key type="b" name="disable-recently-installed-apps">
-      <default>false</default>
-      <summary>disable recently installed apps</summary>
+    <key type="b" name="show-recently-installed-apps">
+      <default>true</default>
+      <summary>Recently installed apps</summary>
     </key>
-    <key type="b" name="disable-tooltips">
-      <default>false</default>
-      <summary>disable tooltips</summary>
+    <key type="b" name="show-tooltips">
+      <default>true</default>
+      <summary>Tooltips</summary>
     </key>
       <key type="b" name="show-category-sub-menus">
       <default>false</default>
       <summary>Show category sub menus.</summary>
     </key>
-    <key type="b" name="alphabetize-all-programs">
+    <key type="b" name="group-apps-alphabetically-list-layouts">
       <default>true</default>
-      <summary>Separate All Programs by a Character Listing</summary>
+      <summary>Group Apps Alphabetically. For "All Apps" sections on list layouts</summary>
+    </key>
+    <key type="b" name="group-apps-alphabetically-grid-layouts">
+      <default>false</default>
+      <summary>Group Apps Alphabetically. For "All Apps" sections on grid layouts</summary>
     </key>
     <key type="b" name="multi-lined-labels">
       <default>true</default>
@@ -375,9 +414,9 @@
       <default>true</default>
       <summary>Set Unity layout to display "Home Screen" as default</summary>
     </key>
-    <key type="b" name="disable-user-avatar">
-      <default>false</default>
-      <summary>Disable the user avatar icon from the menu</summary>
+    <key type="b" name="show-user-avatar">
+      <default>true</default>
+      <summary>Show the user avatar icon from the menu</summary>
     </key>
     <key type="b" name="enable-activities-shortcut">
       <default>false</default>
@@ -399,13 +438,13 @@
       <default>'Categories_List'</default>
       <summary>ArcMenu layout - 'All Apps' button action</summary>
     </key>
-    <key type="b" name="windows-disable-frequent-apps">
-      <default>false</default>
-      <summary>Windows layout - disable frequent apps</summary>
+    <key type="b" name="windows-show-frequent-apps">
+      <default>true</default>
+      <summary>Windows layout - show frequent apps</summary>
     </key>
-    <key type="b" name="windows-disable-pinned-apps">
-      <default>false</default>
-      <summary>Windows layout - disable pinned apps</summary>
+    <key type="b" name="windows-show-pinned-apps">
+      <default>true</default>
+      <summary>Windows layout - show pinned apps</summary>
     </key>
     <key type="b" name="gnome-dash-show-applications">
       <default>false</default>
@@ -415,13 +454,17 @@
       <default>true</default>
       <summary>Plasma Menu Hover to activate item</summary>
     </key>
-    <key type="b" name="runner-show-frequent-apps">
-      <default>false</default>
-      <summary>Runner layout - show frequent apps</summary>
+    <key type="b" name="runner-show-settings-button">
+      <default>true</default>
+      <summary>Runner layout - show settings button</summary>
     </key>
     <key type="i" name="runner-menu-height">
       <default>400</default>
       <summary>Runner layout - menu height</summary>
+    </key>
+    <key type="b" name="runner-menu-height-static">
+      <default>false</default>
+      <summary>Runner layout - menu height will not grow with search results, rather always stay the set 'runner-menu-height'</summary>
     </key>
     <key type="i" name="runner-menu-width">
       <default>500</default>
@@ -431,9 +474,17 @@
       <default>0</default>
       <summary>Runner layout - font size</summary>
     </key>
-    <key type="b" name="eleven-disable-frequent-apps">
-      <default>false</default>
-      <summary>Eleven Layout - disable frequent apps</summary>
+    <key enum="org.gnome.shell.extensions.arcmenu.searchbar-location" name="runner-searchbar-location">
+      <default>'Top'</default>
+      <summary>Searchbar location for runner layout</summary>
+    </key>
+    <key enum="org.gnome.shell.extensions.arcmenu.default-menu-view-runner" name="default-menu-view-runner">
+      <default>'Default'</default>
+      <summary>Set Runner Layout Default View</summary>
+    </key>
+    <key type="b" name="eleven-show-frequent-apps">
+      <default>true</default>
+      <summary>Eleven Layout - show frequent apps</summary>
     </key>
     <key type="b" name="vert-separator">
       <default>false</default>
@@ -483,9 +534,17 @@
       <default>['Super_L']</default>
       <summary>Keybind to open ArcMenu</summary>
     </key>
+    <key name="arcmenu-hotkey-overlay-key-enabled" type="b">
+      <default>true</default>
+      <summary>Override the overlay-key for ArcMenu hotkey</summary>
+    </key>
     <key name="runner-hotkey" type="as">
       <default>[]</default>
       <summary>Keybind to open standalone runner menu. Setting a keybind enables the standalone runner menu.</summary>
+    </key>
+    <key name="runner-hotkey-overlay-key-enabled" type="b">
+      <default>false</default>
+      <summary>Override the overlay-key for the Standalone Runner hotkey</summary>
     </key>
     <key type="b" name="hotkey-open-primary-monitor">
       <default>false</default>
@@ -551,31 +610,35 @@
       <default>false</default>
       <summary>Hide overview on startup</summary>
     </key>
-    <key type="s" name="custom-menu-button-text">
+    <key type="b" name="hide-overview-on-arcmenu-open">
+      <default>false</default>
+      <summary>Hide overview when ArcMenu opens</summary>
+    </key>
+    <key type="b" name="activate-on-launch">
+      <default>false</default>
+      <summary>Activate existing window instead of opening new one on application launch.</summary>
+    </key>
+    <key type="b" name="keep-open-on-ctrl-click">
+      <default>true</default>
+      <summary>Keep ArcMenu open when activating an item with Ctrl pressed.</summary>
+    </key>
+    <key type="s" name="menu-button-text">
       <default>'Apps'</default>
       <summary>Text of the menu button.</summary>
     </key>
-    <key name="menu-button-icon" enum="org.gnome.shell.extensions.arcmenu.menu-button-icon">
-      <default>'Menu_Icon'</default>
-      <summary>Icon type for the menu button.</summary>
+    <key type="s" name="menu-button-icon">
+      <default>'resource:///org/gnome/shell/extensions/arcmenu/icons/scalable/actions/icon-arcmenu-logo-symbolic.svg'</default>
+      <summary>ArcMenu button icon</summary>
+      <description>
+        Can be a file path, a resource:/// URI (for bundled icons), or a symbolic icon name.
+        Bundled icons can be referenced via resource:/// - see data/resources.gresource.xml
+      </description>
     </key>
-    <key name="arc-menu-icon" type="i">
-      <default>0</default>
-      <summary>Icon integer value for the menu button.</summary>
-    </key>
-    <key name="distro-icon" type="i">
-      <default>0</default>
-      <summary>Distro icon integer value for the menu button.</summary>
-    </key>
-    <key type="s" name="custom-menu-button-icon">
-      <default>''</default>
-      <summary>File path of the custom icon for the menu button.</summary>
-    </key>
-    <key type="d" name="custom-menu-button-icon-size">
+    <key type="i" name="menu-button-icon-size">
       <default>20</default>
       <summary>Size of the menu buton icon.</summary>
     </key>
-    <key type="i" name="button-padding">
+    <key type="i" name="menu-button-padding">
       <default>-1</default>
       <summary>Menu Button Padding.</summary>
     </key>
@@ -584,12 +647,16 @@
       <summary>Menu button position offset for main panel</summary>
     </key>
     <key name="extra-categories" type="a(ib)">
-      <default>[(0, true), (1, true), (2, false), (3, false), (4, false)]</default>
+      <default>[(3, true), (2, true), (0, false), (1, false), (4, false)]</default>
       <summary>Array of extra categories. See Constants.js - Categories</summary>
     </key>
     <key name="arcmenu-extra-categories-links" type="a(ib)">
       <default>[(0, false), (1, false), (2, false), (3, false), (4, false)]</default>
       <summary>Array of extra categories links for ArcMenu layout. See Constants.js - Categories</summary>
+    </key>
+    <key type="i" name="arcmenu-layout-max-frequent-apps">
+      <default>8</default>
+      <summary>The max frequent apps to show when default view set to Pinned And Frequent Apps</summary>
     </key>
     <key enum="org.gnome.shell.extensions.arcmenu.menuitem-location" name="arcmenu-extra-categories-links-location">
       <default>'Bottom'</default>
@@ -601,7 +668,23 @@
     </key>
     <key type="i" name="sleek-layout-panel-width">
       <default>225</default>
-      <summary>Sleek layout right panel width.</summary>
+      <summary>Sleek layout extra shortcuts panel width.</summary>
+    </key>
+      <key type="i" name="zest-layout-panel-width">
+      <default>225</default>
+      <summary>Zest layout extra shortcuts panel width.</summary>
+    </key>
+    <key type="b" name="az-layout-merge-panels">
+      <default>false</default>
+      <summary>AZ Layout - Merge the top and bottom panel into one.</summary>
+    </key>
+    <key type="i" name="az-layout-max-frequent-apps">
+      <default>20</default>
+      <summary>AZ Layout - max frequent apps to show when 'default-menu-view-az' set to 'Frequent_Apps'</summary>
+    </key>
+    <key enum="org.gnome.shell.extensions.arcmenu.default-menu-view-az" name="default-menu-view-az">
+      <default>'Pinned_Apps'</default>
+      <summary>Set AZ Layout Default View</summary>
     </key>
     <child name='pinned-apps-folders' schema='org.gnome.shell.extensions.arcmenu.pinned-apps-folders'/>
     <key name="pinned-apps" type="aa{ss}">
@@ -710,6 +793,21 @@
       </default>
       <summary>'Sleek' layout extra shortcuts</summary>
     </key>
+      <key name="zest-layout-extra-shortcuts" type="aa{ss}">
+      <default>
+        [
+          {'id': 'ArcMenu_Home', 'name': 'Home', 'icon': 'ArcMenu_Home'},
+          {'id': 'ArcMenu_Documents', 'name': 'Documents', 'icon': 'ArcMenu_Documents'},
+          {'id': 'ArcMenu_Downloads', 'name': 'Downloads', 'icon': 'ArcMenu_Downloads'},
+          {'id': 'ArcMenu_Music', 'name': 'Music', 'icon': 'ArcMenu_Music'},
+          {'id': 'ArcMenu_Pictures', 'name': 'Pictures', 'icon': 'ArcMenu_Pictures'},
+          {'id': 'ArcMenu_Software', 'name': 'Software'},
+          {'id': 'org.gnome.Settings.desktop'},
+          {'id': 'org.gnome.Terminal.desktop'}
+        ]
+      </default>
+      <summary>'Zest' layout extra shortcuts</summary>
+    </key>
     <key name="unity-layout-extra-shortcuts" type="aa{ss}">
       <default>
         [
@@ -750,53 +848,6 @@
       </default>
       <summary>Context menu shortcut items</summary>
     </key>
-    <!-- DEPRACATED -->
-    <!-- Keep for one release in order to convert old setting to new setting format -->
-    <key name="pinned-app-list" type="as">
-      <default>[]</default>
-      <summary>List of Apps Pinned to Menu</summary>
-    </key>
-    <key name="directory-shortcuts-list" type="aas">
-      <default>[]</default>
-      <summary>List of default directory paths used for links on the right side of ArcMenu</summary>
-    </key>
-    <key name="application-shortcuts-list" type="aas">
-      <default>[]</default>
-      <summary>List of default directory paths used for links on the right side of ArcMenu</summary>
-    </key>
-    <key name="az-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of AZ Layout extra buttons</summary>
-    </key>
-    <key name="eleven-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of Eleven Layout extra buttons</summary>
-    </key>
-    <key name="insider-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of Insider Layout extra buttons</summary>
-    </key>
-    <key name="windows-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of Windows Layout extra buttons</summary>
-    </key>
-    <key name="unity-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of Unity Layout extra buttons</summary>
-    </key>
-    <key name="brisk-extra-shortcuts" type="aas">
-      <default>[]</default>
-      <summary>List of Brisk Layout extra shortcuts</summary>
-    </key>
-    <key name="mint-extra-buttons" type="aas">
-      <default>[]</default>
-      <summary>List of Mint Layout extra buttons</summary>
-    </key>
-    <key name="context-menu-shortcuts" type="aas">
-      <default>[]</default>
-      <summary>List of shortcuts on ArcMenu button context menu</summary>
-    </key>
-    <!-- END DEPRACATED -->
     <key name="pop-folders-data" type="a{ss}">
       <default>{}</default>
       <summary>List of org.gnome.desktop.app-folders id:name</summary>

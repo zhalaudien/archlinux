@@ -1,5 +1,14 @@
 #!/bin/bash
 
+
+# Download tema
+echo "📥 Mengunduh icom gnome-browser-connector..."
+sudo pacman -S --noconfirm gnome-browser-connector
+
+# Download tema
+echo "📥 Mengunduh icom papirus..."
+sudo pacman -S --noconfirm papirus-icon-theme
+
 # Download tema
 echo "📥 Mengunduh tema..."
 git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
