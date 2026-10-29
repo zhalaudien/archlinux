@@ -1,0 +1,86 @@
+diff --git a/archinstall/lib/installer.py b/archinstall/lib/installer.py
+index 11b89a9c..4cc1c565 100644
+--- a/archinstall/lib/installer.py
++++ b/archinstall/lib/installer.py
+@@ -107,6 +107,13 @@ class Installer:
+ 
+ 		for kernel in self.kernels:
+ 			self._base_packages.append(kernel)
++			if 'cachyos' in kernel:
++				for pkg in ['cachyos-keyring', 'cachyos-mirrorlist']:
++					if pkg not in self._base_packages:
++						self._base_packages.append(pkg)
++				for v_name in ['cachyos-v3-mirrorlist', 'cachyos-v4-mirrorlist', 'cachyos-znver4-mirrorlist']:
++					if Path(f'/etc/pacman.d/{v_name}').exists() and v_name not in self._base_packages:
++						self._base_packages.append(v_name)
+ 
+ 		# Optional firmware is strapped with base so the blobs are in place before the initramfs is generated
+ 		self._base_packages.extend(firmware or [])
+@@ -941,6 +948,12 @@ class Installer:
+ 
+ 		pacman_conf.persist()
+ 
++		if any('cachyos' in k for k in self.kernels):
++			try:
++				self.arch_chroot('pacman-key --populate archlinux cachyos')
++			except Exception as err:
++				debug(f'CachyOS keyring populate notice: {err}')
++
+ 		if pacman_config:
+ 			pacman_conf.configure(pacman_config)
+ 
+diff --git a/archinstall/lib/models/package_types.py b/archinstall/lib/models/package_types.py
+index 73dd00ee..0e484c5d 100644
+--- a/archinstall/lib/models/package_types.py
++++ b/archinstall/lib/models/package_types.py
+@@ -11,9 +11,12 @@ class Kernel(StrEnum):
+ 	LINUX_HARDENED = 'linux-hardened'
+ 	LINUX_RT = 'linux-rt'
+ 	LINUX_RT_LTS = 'linux-rt-lts'
++	LINUX_CACHYOS = 'linux-cachyos'
++	LINUX_CACHYOS_BORE = 'linux-cachyos-bore'
++	LINUX_CACHYOS_LTS = 'linux-cachyos-lts'
+ 
+ 
+-DEFAULT_KERNEL: Final = Kernel.LINUX
++DEFAULT_KERNEL: Final = Kernel.LINUX_CACHYOS
+ 
+ 
+ class FirmwareOptdep(StrEnum):
+diff --git a/archinstall/lib/pacman/config.py b/archinstall/lib/pacman/config.py
+index 4f1329a9..5e5357eb 100644
+--- a/archinstall/lib/pacman/config.py
++++ b/archinstall/lib/pacman/config.py
+@@ -54,6 +54,14 @@ class PacmanConfig:
+ 		if self._config_remote_path:
+ 			PACMAN_CONF.copy(self._config_remote_path, preserve_metadata=True)
+ 
++			target_pacman_d = self._config_remote_path.parent / 'pacman.d'
++			if target_pacman_d.exists():
++				import shutil
++				for mirrorlist_file in Path('/etc/pacman.d').glob('cachyos*'):
++					dest_file = target_pacman_d / mirrorlist_file.name
++					if not dest_file.exists():
++						shutil.copy2(mirrorlist_file, dest_file)
++
+ 	def configure(self, pacman_config: PacmanConfiguration) -> None:
+ 		"""Apply PacmanConfiguration (Color, ParallelDownloads) to the target system's pacman.conf."""
+ 		if not self._config_remote_path or not self._config_remote_path.exists():
+diff --git a/schema.json b/schema.json
+index 54bfbf98..440a8733 100644
+--- a/schema.json
++++ b/schema.json
+@@ -66,7 +66,12 @@
+                     "linux",
+                     "linux-lts",
+                     "linux-zen",
+-                    "linux-hardened"
++                    "linux-hardened",
++                    "linux-rt",
++                    "linux-rt-lts",
++                    "linux-cachyos",
++                    "linux-cachyos-bore",
++                    "linux-cachyos-lts"
+                 ]
+             }
+         },
