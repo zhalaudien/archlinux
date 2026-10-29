@@ -1,70 +1,82 @@
-# archlinux
+# Arch Linux Post-Installation Toolkit
 
-auto config untuk update setelah install, install fish dan oh-my-posh, install tema, install php untuk programing, kusus untuk pengguna ArchLinux yang baru install base system dan desktop gnome-shell
+Koleksi skrip otomatisasi konfigurasi dan setup pasca-instalasi Arch Linux dengan Desktop GNOME. Dirancang khusus untuk workflow developer: Fish Shell + Oh My Posh, tema modern GTK & ikon, ekstensi GNOME Shell, serta lingkungan Fullstack Web Development (PHP, Apache, MariaDB, Composer, Node.js, NPM, Yarn, PNPM).
 
-## Installation
+---
 
-Jika belum install git install terlebih dahulu
+## 🚀 Setup Cepat (All-in-One)
 
-```
-sudo pacman -S git
-```
+Cukup jalankan satu skrip `after_install.sh` untuk menginstal seluruh ekosistem sekaligus di instalasi baru:
 
-Clone ke home.
+```bash
+# 1. Pastikan git terpasang
+sudo pacman -S --needed git
 
-```
-cd
+# 2. Clone repositori ke home
+cd ~
 git clone https://github.com/zhalaudien/archlinux.git
-cd archlinux/
+cd archlinux
+
+# 3. Jalankan script utama (All-in-One)
+sudo ./after_install.sh
 ```
 
-update system && install font, firefox.
+### Yang diinstal & dikonfigurasi oleh `after_install.sh`:
+1. **Sistem & Aplikasi Dasar:** Update sistem (`pacman -Syu`), Firefox, GNOME Tweaks, GNOME Extensions, Fastfetch, Htop, Power Profiles Daemon, Base-devel, Git, Wget, Curl.
+2. **Font:** Noto Fonts lengkap & FiraCode Nerd Font.
+3. **AUR Helper:** Membangun & mengonfigurasi `yay-bin` secara otomatis.
+4. **Shell & Terminal:** Fish Shell (dijadikan default shell), Oh My Posh prompt engine, kumpulan tema Oh My Posh, serta konfigurasi `config.fish`.
+5. **Tema & GNOME Shell:** Tema GTK Everforest & Tokyonight, Papirus Icon Theme, dan instalasi ekstensi GNOME Shell dari `config/extensions/`.
+6. **Backend Development:** Apache (httpd), MariaDB Server, PHP & ekstensi lengkap, phpMyAdmin (`http://localhost/phpmyadmin`), dan Composer global.
+7. **Frontend / NPM Ecosystem:** Node.js, NPM, Yarn, PNPM, serta konfigurasi prefix global (`~/.npm-global`) agar bebas dari error hak akses `EACCES` saat menginstal paket global.
 
-```
-./afterinstall.sh
-```
+---
 
-Install Fish dan oh-my-posh
+## 🛠️ Menjalankan Skrip Parsial (Opsional)
 
-```
-./install_fish.sh
-```
+Jika hanya ingin menginstal komponen tertentu secara terpisah:
 
-Install tema.
+- **Fish Shell & Oh My Posh:**
+  ```bash
+  ./install_fish.sh
+  ```
 
-```
-./install_tema.sh
-```
+- **Tema GTK & Ekstensi GNOME:**
+  ```bash
+  ./install_tema.sh
+  ```
 
-Install PHP, composer, apache, mariadb, phpmyadmin.
+- **Stack Web Development (PHP, Apache, MariaDB, Node.js, NPM):**
+  ```bash
+  sudo ./install_php.sh
+  ```
 
-```
-sudo ./install_php.sh
-```
+- **Flutter & Android SDK Development:**
+  ```bash
+  ./install_flutter.sh
+  ```
 
-Install Kernel Cachyos.
+---
 
-```
-./install_kernel_cachyos.sh
-```
+## 🧹 Optimalisasi & Pembersihan Sistem
 
-Optimalisasi & Pembersihan Sistem (Clear Cache, Orphan Packages, Journal Log, dll).
+Gunakan skrip `optimize_system.sh` untuk membersihkan cache pacman, menghapus paket yatim (*orphaned packages*), memangkas systemd journal log, dan memeriksa kesehatan sistem:
 
-```
+```bash
+# Mode interaktif (dengan konfirmasi di setiap langkah)
 ./optimize_system.sh
-```
 
-Atau jalankan mode otomatis (tanpa konfirmasi manual):
-
-```
+# Mode otomatis (langsung jalankan rekomendasi pembersihan)
 ./optimize_system.sh -y
 ```
 
-## Update Script
+---
 
-Update script jika ada update dan perbaikan
+## 🔄 Pembaruan Skrip
 
-```
-cd archlinux
+Untuk menarik perbaikan terbaru dari repositori:
+
+```bash
+cd ~/archlinux
 git pull
 ```

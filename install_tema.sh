@@ -1,64 +1,67 @@
 #!/bin/bash
 
+# ==============================================================================
+# Script Instalasi Tema GTK, Ikon & GNOME Shell Extensions
+# ==============================================================================
 
-# Download tema
-echo "📥 Mengunduh icom gnome-browser-connector..."
-sudo pacman -S --noconfirm gnome-browser-connector
+if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+    REAL_USER="$SUDO_USER"
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    REAL_USER="${USER:-$(whoami)}"
+    USER_HOME="$HOME"
+fi
 
-# Download tema
-echo "📥 Mengunduh icom papirus..."
-sudo pacman -S --noconfirm papirus-icon-theme
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Download tema
-echo "📥 Mengunduh tema..."
-git clone https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git Tokyonight
-git clone https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git Everforest
+# 1. Install dependensi ikon & GNOME tools
+echo "📥 Menginstal paket gnome-browser-connector, gnome-tweaks, dan papirus-icon-theme..."
+sudo pacman -S --needed --noconfirm gnome-browser-connector gnome-tweaks papirus-icon-theme
 
-# Fungsi untuk menginstal tema
+# 2. Download dan install tema GTK
+TEMP_DIR="/tmp/theme-install-standalone"
+rm -rf "$TEMP_DIR"
+mkdir -p "$TEMP_DIR"
+
+echo "📥 Mengunduh repository tema Tokyonight & Everforest..."
+git clone --depth 1 https://github.com/Fausto-Korpsvart/Tokyonight-GTK-Theme.git "$TEMP_DIR/Tokyonight" 2>/dev/null || true
+git clone --depth 1 https://github.com/Fausto-Korpsvart/Everforest-GTK-Theme.git "$TEMP_DIR/Everforest" 2>/dev/null || true
+
 install_theme() {
-    local theme_dir=$1
+    local theme_path=$1
     local theme_name=$2
 
     echo "🧰 Menginstal Tema ${theme_name}..."
-
-    if [ -f "${theme_dir}/themes/install.sh" ]; then
-        chmod +x "${theme_dir}/themes/install.sh"
-        sudo bash "${theme_dir}/themes/install.sh"
-    else
-        echo "❌ File install.sh tidak ditemukan di ${theme_dir}/themes/"
-        exit 1
+    if [ -f "${theme_path}/themes/install.sh" ]; then
+        chmod +x "${theme_path}/themes/install.sh"
+        sudo bash "${theme_path}/themes/install.sh"
     fi
 
     echo "🧰 Menginstal Icon ${theme_name}..."
-    if [ -d "${theme_dir}/icons" ]; then
-        sudo cp -r "${theme_dir}/icons/"* /usr/share/icons/
-    else
-        echo "❌ Direktori ikon tidak ditemukan di ${theme_dir}/icons/"
+    if [ -d "${theme_path}/icons" ]; then
+        sudo cp -r "${theme_path}/icons/"* /usr/share/icons/ 2>/dev/null || true
     fi
 }
 
-# 1. Install Tema Everforest
-install_theme "Everforest" "Everforest"
+install_theme "$TEMP_DIR/Everforest" "Everforest"
+install_theme "$TEMP_DIR/Tokyonight" "Tokyonight"
+rm -rf "$TEMP_DIR"
 
-# 2. Install Tema Tokyonight
-install_theme "Tokyonight" "Tokyonight"
-
-# 3. Memastikan GNOME Tweaks terpasang
-if ! command -v gnome-tweaks &> /dev/null; then
-    echo "🔧 Menginstal GNOME Tweaks..."
-    pacman -S --noconfirm gnome-tweaks
+# 3. Install GNOME Shell Extensions
+EXT_DIR="$USER_HOME/.local/share/gnome-shell/extensions"
+mkdir -p "$EXT_DIR"
+if [ -d "$SCRIPT_DIR/config/extensions" ]; then
+    echo "🧰 Memasang GNOME Shell Extensions ke ${EXT_DIR}..."
+    cp -r "$SCRIPT_DIR/config/extensions/"* "$EXT_DIR/"
+    sudo chown -R "$REAL_USER:$REAL_USER" "$USER_HOME/.local/share/gnome-shell"
 fi
 
-echo "🧰 Install extensions gnome shell..."
-mkdir ~/.local/share/gnome-shell/extensions
-cp -r config/extensions/* ~/.local/share/gnome-shell/extensions/
-
-# 4. Membersihkan cache tema GTK
-echo "🧹 Membersihkan cache tema GTK..."
-gtk-update-icon-cache -f /usr/share/icons/*
-
-# 5. Menghapus direktori tema setelah instalasi
-echo "🗑️ Menghapus direktori tema yang sudah diinstal..."
-sudo rm -rf Everforest Tokyonight
+# 4. Membersihkan dan memperbarui cache tema & icon GTK
+echo "🧹 Memperbarui cache icon GTK..."
+for theme_path in /usr/share/icons/*; do
+    if [ -f "$theme_path/index.theme" ]; then
+        sudo gtk-update-icon-cache -f -q "$theme_path" 2>/dev/null || true
+    fi
+done
 
 echo "✅ Instalasi Tema & Icon Everforest dan Tokyonight selesai!"

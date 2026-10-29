@@ -6,7 +6,9 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-echo "🚀 Memulai instalasi MariaDB, PHP, phpMyAdmin, Composer, dan Apache..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "🚀 Memulai instalasi MariaDB, PHP, phpMyAdmin, Composer, Apache, dan Node.js/NPM Ecosystem..."
 
 # 1. Install Apache Web Server
 echo "🌐 Menginstal Apache Web Server (httpd)..."
@@ -57,9 +59,9 @@ cat <<EOF > /etc/httpd/conf/extra/php-fpm.conf
 EOF
 
 # Tambahkan konfigurasi PHP-FPM di httpd.conf jika belum ada
-sudo cp config/httpd.conf /etc/httpd/conf/httpd.conf
-sudo cp config/phpmyadmin.conf /etc/httpd/conf/extra/
-sudo cp config/php.ini /etc/php/php.ini
+[ -f "$SCRIPT_DIR/config/httpd.conf" ] && cp "$SCRIPT_DIR/config/httpd.conf" /etc/httpd/conf/httpd.conf
+[ -f "$SCRIPT_DIR/config/phpmyadmin.conf" ] && cp "$SCRIPT_DIR/config/phpmyadmin.conf" /etc/httpd/conf/extra/
+[ -f "$SCRIPT_DIR/config/php.ini" ] && cp "$SCRIPT_DIR/config/php.ini" /etc/php/php.ini
 
 # Jalankan dan aktifkan PHP-FPM
 echo "🔄 Mengaktifkan dan memulai PHP-FPM..."
@@ -114,7 +116,53 @@ else
     exit 1
 fi
 
-# 6. Restart dan Cek Status Semua Service
+# 6. Install Node.js, NPM, dan Penunjang Development Berbasis NPM
+echo "🟢 Menginstal Node.js, NPM, dan alat penunjang development (yarn, pnpm, base-devel)..."
+pacman -S --needed --noconfirm nodejs npm yarn pnpm base-devel
+
+# Konfigurasi npm global directory agar user biasa bisa install paket global tanpa sudo (mencegah error permission EACCES)
+TARGET_USER="${SUDO_USER:-$USER}"
+if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
+    USER_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+    if [ -d "$USER_HOME" ]; then
+        echo "🔧 Mengatur direktori prefix npm global untuk user: $TARGET_USER..."
+        NPM_DIR="$USER_HOME/.npm-global"
+        mkdir -p "$NPM_DIR/bin" "$NPM_DIR/lib"
+        chown -R "$TARGET_USER:$TARGET_USER" "$NPM_DIR"
+        
+        # Atur prefix npm untuk target user
+        sudo -u "$TARGET_USER" npm config set prefix "$NPM_DIR"
+
+        # Tambahkan ke ~/.bashrc jika belum ada
+        if [ -f "$USER_HOME/.bashrc" ] && ! grep -q "npm-global/bin" "$USER_HOME/.bashrc"; then
+            echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$USER_HOME/.bashrc"
+        fi
+
+        # Tambahkan ke ~/.zshrc jika ada
+        if [ -f "$USER_HOME/.zshrc" ] && ! grep -q "npm-global/bin" "$USER_HOME/.zshrc"; then
+            echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$USER_HOME/.zshrc"
+        fi
+
+        # Tambahkan ke Fish Shell config jika ada
+        FISH_CONFIG="$USER_HOME/.config/fish/config.fish"
+        if [ -f "$FISH_CONFIG" ] && ! grep -q "npm-global/bin" "$FISH_CONFIG"; then
+            echo 'fish_add_path $HOME/.npm-global/bin' >> "$FISH_CONFIG"
+        fi
+    fi
+fi
+
+# Verifikasi instalasi ekosistem Node.js & NPM
+if command -v node &> /dev/null && command -v npm &> /dev/null; then
+    echo "✅ Node.js terinstal: $(node -v)"
+    echo "✅ NPM terinstal: v$(npm -v)"
+    command -v yarn &> /dev/null && echo "✅ Yarn terinstal: v$(yarn -v)"
+    command -v pnpm &> /dev/null && echo "✅ PNPM terinstal: v$(pnpm -v)"
+else
+    echo "❌ Gagal memverifikasi instalasi Node.js / NPM!"
+    exit 1
+fi
+
+# 7. Restart dan Cek Status Semua Service
 echo "🔄 Merestart layanan terkait..."
 systemctl restart mariadb.service
 systemctl restart php-fpm.service
@@ -128,3 +176,7 @@ systemctl status httpd.service --no-pager
 echo "🎉 Instalasi selesai!"
 echo "✅ Akses phpMyAdmin di: http://localhost/phpmyadmin"
 echo "✅ Web root: /srv/http/"
+echo "✅ PHP: $(php -v | head -n 1 | awk '{print $2}')"
+echo "✅ Composer: $(composer --version | cut -d' ' -f3)"
+echo "✅ Node.js: $(node -v)"
+echo "✅ NPM: v$(npm -v)"
