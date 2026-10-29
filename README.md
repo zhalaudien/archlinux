@@ -48,6 +48,18 @@ Install Kernel Cachyos.
 ./install_kernel_cachyos.sh
 ```
 
+Optimalisasi & Pembersihan Sistem (Clear Cache, Orphan Packages, Journal Log, dll).
+
+```
+./optimize_system.sh
+```
+
+Atau jalankan mode otomatis (tanpa konfirmasi manual):
+
+```
+./optimize_system.sh -y
+```
+
 ## Update Script
 
 Update script jika ada update dan perbaikan
