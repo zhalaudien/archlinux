@@ -125,6 +125,7 @@ fi
 # 5. Konfigurasi /etc/pacman.conf Host
 msg "Mengonfigurasi repositori CachyOS pada /etc/pacman.conf..."
 python3 - << PYPACMAN
+import os
 import sys
 
 conf = '/etc/pacman.conf'
@@ -192,6 +193,7 @@ import glob
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 
 # Cari lokasi archinstall pada site-packages sistem
@@ -248,40 +250,35 @@ if inst_file.exists():
     content = inst_file.read_text(encoding='utf-8')
     if 'cachyos' not in content:
         backup_file(inst_file)
-        # Patch base_packages
-        target1 = "for kernel in self.kernels:\n\t\t\tself._base_packages.append(kernel)"
-        replacement1 = (
-            "for kernel in self.kernels:\n"
-            "\t\t\tself._base_packages.append(kernel)\n"
-            "\t\t\tif 'cachyos' in kernel:\n"
-            "\t\t\t\tfor pkg in ['cachyos-keyring', 'cachyos-mirrorlist']:\n"
-            "\t\t\t\t\tif pkg not in self._base_packages:\n"
-            "\t\t\t\t\t\tself._base_packages.append(pkg)\n"
-            "\t\t\t\tfor v_name in ['cachyos-v3-mirrorlist', 'cachyos-v4-mirrorlist', 'cachyos-znver4-mirrorlist']:\n"
-            "\t\t\t\t\tif Path(f'/etc/pacman.d/{v_name}').exists() and v_name not in self._base_packages:\n"
-            "\t\t\t\t\t\tself._base_packages.append(v_name)"
-        )
-        if target1 in content:
-            content = content.replace(target1, replacement1)
-        else:
-            content = re.sub(
-                r"(for kernel in self\.kernels:\s*\n\s*self\._base_packages\.append\(kernel\))",
-                r"\1\n\t\t\tif 'cachyos' in kernel:\n\t\t\t\tfor pkg in ['cachyos-keyring', 'cachyos-mirrorlist']:\n\t\t\t\t\tif pkg not in self._base_packages:\n\t\t\t\t\t\tself._base_packages.append(pkg)",
-                content
+        
+        # Patch base_packages append
+        m1 = re.search(r"^([ \t]*)for kernel in self\.kernels:\s*\n([ \t]*)self\._base_packages\.append\(kernel\)", content, re.MULTILINE)
+        if m1:
+            ind1 = m1.group(1)
+            ind2 = m1.group(2)
+            cachy_strap = (
+                f"\n{ind2}if 'cachyos' in kernel:\n"
+                f"{ind2}\tfor pkg in ['cachyos-keyring', 'cachyos-mirrorlist']:\n"
+                f"{ind2}\t\tif pkg not in self._base_packages:\n"
+                f"{ind2}\t\t\tself._base_packages.append(pkg)\n"
+                f"{ind2}\tfor v_name in ['cachyos-v3-mirrorlist', 'cachyos-v4-mirrorlist', 'cachyos-znver4-mirrorlist']:\n"
+                f"{ind2}\t\tif Path(f'/etc/pacman.d/{{v_name}}').exists() and v_name not in self._base_packages:\n"
+                f"{ind2}\t\t\tself._base_packages.append(v_name)"
             )
+            content = content[:m1.end()] + cachy_strap + content[m1.end():]
 
         # Patch populate keyring in chroot
-        target2 = "pacman_conf.persist()"
-        replacement2 = (
-            "pacman_conf.persist()\n\n"
-            "\t\tif any('cachyos' in k for k in self.kernels):\n"
-            "\t\t\ttry:\n"
-            "\t\t\t\tself.arch_chroot('pacman-key --populate archlinux cachyos')\n"
-            "\t\t\texcept Exception as err:\n"
-            "\t\t\t\tdebug(f'CachyOS keyring populate notice: {err}')"
-        )
-        if target2 in content:
-            content = content.replace(target2, replacement2, 1)
+        m2 = re.search(r"^([ \t]*)pacman_conf\.persist\(\)", content, re.MULTILINE)
+        if m2:
+            ind = m2.group(1)
+            cachy_pop = (
+                f"\n\n{ind}if any('cachyos' in k for k in self.kernels):\n"
+                f"{ind}\ttry:\n"
+                f"{ind}\t\tself.arch_chroot('pacman-key --populate archlinux cachyos')\n"
+                f"{ind}\texcept Exception as err:\n"
+                f"{ind}\t\tdebug(f'CachyOS keyring populate notice: {{err}}')"
+            )
+            content = content[:m2.end()] + cachy_pop + content[m2.end():]
 
         inst_file.write_text(content, encoding='utf-8')
         print("  [+] Berhasil patch installer.py (Auto-strap CachyOS Keyring & Mirrorlist)")
@@ -294,19 +291,19 @@ if cfg_file.exists():
     content = cfg_file.read_text(encoding='utf-8')
     if 'cachyos' not in content:
         backup_file(cfg_file)
-        target3 = "PACMAN_CONF.copy(self._config_remote_path, preserve_metadata=True)"
-        replacement3 = (
-            "PACMAN_CONF.copy(self._config_remote_path, preserve_metadata=True)\n\n"
-            "\t\t\ttarget_pacman_d = self._config_remote_path.parent / 'pacman.d'\n"
-            "\t\t\tif target_pacman_d.exists():\n"
-            "\t\t\t\timport shutil\n"
-            "\t\t\t\tfor mirrorlist_file in Path('/etc/pacman.d').glob('cachyos*'):\n"
-            "\t\t\t\t\tdest_file = target_pacman_d / mirrorlist_file.name\n"
-            "\t\t\t\t\tif not dest_file.exists():\n"
-            "\t\t\t\t\t\tshutil.copy2(mirrorlist_file, dest_file)"
-        )
-        if target3 in content:
-            content = content.replace(target3, replacement3)
+        m3 = re.search(r"^([ \t]*)PACMAN_CONF\.copy\(self\._config_remote_path, preserve_metadata=True\)", content, re.MULTILINE)
+        if m3:
+            ind = m3.group(1)
+            cachy_cpy = (
+                f"\n\n{ind}target_pacman_d = self._config_remote_path.parent / 'pacman.d'\n"
+                f"{ind}if target_pacman_d.exists():\n"
+                f"{ind}\timport shutil\n"
+                f"{ind}\tfor mirrorlist_file in Path('/etc/pacman.d').glob('cachyos*'):\n"
+                f"{ind}\t\tdest_file = target_pacman_d / mirrorlist_file.name\n"
+                f"{ind}\t\tif not dest_file.exists():\n"
+                f"{ind}\t\t\tshutil.copy2(mirrorlist_file, dest_file)"
+            )
+            content = content[:m3.end()] + cachy_cpy + content[m3.end():]
             cfg_file.write_text(content, encoding='utf-8')
             print("  [+] Berhasil patch config.py (Persist CachyOS mirrorlists to target)")
     else:
